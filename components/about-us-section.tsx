@@ -245,13 +245,15 @@ export default function AboutUsSection() {
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.9 }}
                 >
+                    <Link href={process.env.NEXT_PUBLIC_INSTA || ''}>
                   <motion.button
                     className="bg-white text-muted-forground px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                   >
-                    Our Portfolio <ArrowRight className="w-4 h-4" />
+                    Our Instagram <ArrowRight className="w-4 h-4" />
                   </motion.button>
+                  </Link>
                 </motion.div>
               </motion.div>
               <motion.div
