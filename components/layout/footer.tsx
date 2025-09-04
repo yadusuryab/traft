@@ -33,9 +33,9 @@ function Footer() {
 
         {/* Contact Section */}
         <div className="flex justify-center md:justify-end w-full md:w-auto">
-          <Link href={`tel:8129467976`}>
+          <Link href={`tel:${process.env.NEXT_PUBLIC_PHONE}`}>
             <Button variant="link" className="text-primary font-bold text-lg flex items-center gap-2">
-              <PhoneCall /> 8129467976
+              <PhoneCall /> {process.env.NEXT_PUBLIC_PHONE}
             </Button>
           </Link>
         </div>
