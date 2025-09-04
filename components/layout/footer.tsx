@@ -43,7 +43,7 @@ function Footer() {
 
       {/* Bottom Section */}
       <div className="flex justify-center md:justify-between py-5 px-5 md:px-28  text-muted-foreground text-sm">
-        <p>&copy; {currentYear}, Sylezone.</p>
+        <p>&copy; {currentYear}, {process.env.NEXT_PUBLIC_APP_NAME}.</p>
       </div>
     </footer>
   );
