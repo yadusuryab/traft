@@ -10,7 +10,7 @@ export default async function Home() {
   const homeProducts = await getHomeProducts();
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-5 pt-14">
       <Hero/>
       <CategorySection />
       <ProductsSection products={homeProducts} showViewAll={true} />

@@ -31,14 +31,15 @@ function ProductsPageComponent() {
 
   // Initialize filters from URL or defaults
   const [filters, setFilters] = useState({
+    q: searchParams.get("q") || "",
     minPrice: parseInt(searchParams.get("minPrice") || "0"),
-    maxPrice: parseInt(searchParams.get("maxPrice") || "20000"), // Default max 20,000 INR
+    maxPrice: parseInt(searchParams.get("maxPrice") || "20000"),
     category: searchParams.get("category") || "",
     sort: searchParams.get("sort") || "newest",
     page: parseInt(searchParams.get("page") || "1"),
     limit: 12,
   });
-
+  
   const [pagination, setPagination] = useState({
     total: 0,
     hasNextPage: false,
@@ -59,23 +60,30 @@ function ProductsPageComponent() {
   }, []);
 
   // Update URL when filters change
-  useEffect(() => {
-    const params = new URLSearchParams();
-    if (filters.minPrice > 0)
-      params.set("minPrice", filters.minPrice.toString());
-    if (filters.maxPrice < 100000)
-      params.set("maxPrice", filters.maxPrice.toString());
-    if (filters.category) params.set("category", filters.category);
-    if (filters.sort !== "newest") params.set("sort", filters.sort);
-    if (filters.page > 1) params.set("page", filters.page.toString());
+ // Update URL when filters change
+useEffect(() => {
+  const params = new URLSearchParams();
+  
+  // Add this line to include the search query in the URL
+  if (filters.q) params.set("q", filters.q);
+  
+  if (filters.minPrice > 0)
+    params.set("minPrice", filters.minPrice.toString());
+  if (filters.maxPrice < 100000)
+    params.set("maxPrice", filters.maxPrice.toString());
+  if (filters.category) params.set("category", filters.category);
+  if (filters.sort !== "newest") params.set("sort", filters.sort);
+  if (filters.page > 1) params.set("page", filters.page.toString());
 
-    router.replace(`/products?${params.toString()}`, { scroll: false });
-  }, [filters, router]);
+  router.replace(`/products?${params.toString()}`, { scroll: false });
+}, [filters, router]);
 
   const fetchProducts = async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
+      console.log(filters.q)
+      if (filters.q) params.append("q", filters.q);
       params.append("minPrice", filters.minPrice.toString());
       params.append("maxPrice", filters.maxPrice.toString());
       if (filters.category) params.append("category", filters.category);
@@ -158,7 +166,7 @@ function ProductsPageComponent() {
   return (
     <div className="container mx-auto  py-8">
       {/* Mobile Filters Button */}
-      <div className="md:hidden flex justify-between px-4 items-center mb-6">
+      <div className="md:hidden flex justify-between  items-center mb-6">
         <h1 className="text-2xl font-bold">Fresh Drops</h1>
         <Button
           variant="outline"
@@ -169,6 +177,15 @@ function ProductsPageComponent() {
           Filters
         </Button>
       </div>
+      <div className=" md:px-0 mb-6">
+    <input
+      type="text"
+      placeholder="Search products..."
+      value={filters.q}
+      onChange={(e) => setFilters(prev => ({ ...prev, q: e.target.value, page: 1 }))}
+      className="w-full md:w-96 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+    />
+  </div>
 
       <div className="flex flex-col md:flex-row gap-8">
         {/* Mobile Filters Overlay */}

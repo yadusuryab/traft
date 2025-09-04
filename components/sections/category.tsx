@@ -42,11 +42,11 @@ function CategorySection() {
   }, [])
 
   return (
-    <div className="bg-secondary border   mx-2 py-2">
-      <h2 className="text-xl tracking-tight italic font-serif mb-3 px-4">
-        Traft Collections.
+    <div className="  ">
+      <h2 className="text-xl tracking-tight  mb-3 ">
+        Our Collections.
       </h2>
-      <div className="flex gap-4 overflow-x-auto max-w-[360px] md:max-w-full whitespace-nowrap pb-2 px-4 md:justify-start">
+      <div className="flex gap-4 overflow-x-auto max-w-[360px] md:max-w-full whitespace-nowrap pb-2  md:justify-start">
         {categories.map((cat, i) => (
           <CategoryCard key={i} {...cat} />
         ))}

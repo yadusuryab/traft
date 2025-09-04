@@ -28,6 +28,12 @@ export async function GET(req: NextRequest) {
       `salesPrice <= ${maxPrice}`
     ]
 
+    const q = searchParams.get('q')
+
+if (q) {
+  conditions.push(`name match "*${q}*" || description match "*${q}*" || features[] match "*${q}*"`)
+}
+
     if (category) conditions.push(`category->slug.current == "${category}"`)
     if (featured === 'true') conditions.push('featured == true')
 

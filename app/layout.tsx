@@ -86,7 +86,7 @@ export default function RootLayout({
       >
        
           <Header />
-          <div className="pt-14  md:max-w-[1000px] md:mx-auto min-h-screen">{children}</div>
+          <div className="pt-14 px-4  md:max-w-[1000px] md:mx-auto min-h-screen">{children}</div>
           <Footer/>
           <Toaster />
       

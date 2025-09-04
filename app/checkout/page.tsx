@@ -30,11 +30,12 @@ type FormData = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [shippingCharges] = useState(30); // Fixed shipping for online payments
+  const [shippingCharges] = useState(30);
   const [showPayment, setShowPayment] = useState(false);
   const [transactionId, setTransactionId] = useState("");
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
 
   const router = useRouter();
 
@@ -55,17 +56,17 @@ export default function CheckoutPage() {
   const total = subtotal + shippingCharges;
 
   const generateUpiLink = (amount: number) => {
-    const upiId = process.env.NEXT_PUBLIC_UPI_ID; // Replace with your actual UPI ID
+    const upiId = process.env.NEXT_PUBLIC_UPI_ID;
     const note = `Payment for order`;
     return `upi://pay?pa=${upiId}&pn=${process.env.NEXT_PUBLIC_APP_NAME}&am=${amount}&tn=${note}`;
   };
 
   const handleOrder = async (data: FormData) => {
+    const paymentAmount = paymentMethod === "online" ? total : 100;
+
     if (!showPayment) {
-      // Generate UPI link with amount
-      setQrCodeValue(generateUpiLink(total));
-      // Save form data to localStorage for payment step
-      localStorage.setItem("pendingOrder", JSON.stringify({ ...data, cart, total }));
+      setQrCodeValue(generateUpiLink(paymentAmount));
+      localStorage.setItem("pendingOrder", JSON.stringify({ ...data, cart, total, paymentMethod }));
       setShowPayment(true);
       return;
     }
@@ -80,29 +81,26 @@ export default function CheckoutPage() {
           size: p.size,
           color: p.color,
         })),
-        paymentMode: "online" as const,
+        paymentMode: paymentMethod,
         shippingCharges,
         totalAmount: total,
+        advanceAmount: paymentMethod === "cod" ? 100 : total,
+        codRemaining: paymentMethod === "cod" ? total - 100 : 0,
         paymentStatus: true,
         transactionId,
       };
 
       const response = await fetch("/api/create-order", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderData),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to create order");
-      }
+      if (!response.ok) throw new Error("Failed to create order");
 
       const respdata = await response.json();
       localStorage.removeItem("cart");
       localStorage.removeItem("pendingOrder");
-      
       router.push(`/order/${respdata.orderId}`);
     } catch (error) {
       toast.error("Failed to place order. Please try again.");
@@ -135,32 +133,29 @@ export default function CheckoutPage() {
             <CardTitle>Complete Payment</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-lg font-semibold">Total Amount: ₹{total}</div>
-            
+            <div className="text-lg font-semibold">
+              {paymentMethod === "online"
+                ? `Total Amount: ₹${total}`
+                : `Advance Payment: ₹100 (Remaining COD: ₹${total - 100})`}
+            </div>
+
             <div className="grid gap-4">
               <div className="border rounded-lg p-4">
                 <h3 className="font-medium mb-2">UPI Payment</h3>
                 <div className="flex flex-col items-center gap-4">
                   <div className="border rounded p-2 bg-white">
-                    <QRCodeCanvas
-                      value={qrCodeValue}
-                      size={200}
-                      level="H"
-                      includeMargin={true}
-                    />
+                    <QRCodeCanvas value={qrCodeValue} size={200} level="H" includeMargin={true} />
                   </div>
-                  
+
                   <div className="text-center">
                     <p className="font-medium">Scan QR or pay to:</p>
                     <p className="text-lg font-bold">{process.env.NEXT_PUBLIC_UPI_ID}</p>
-                    <p className="text-sm text-muted-foreground">Amount: ₹{total}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Amount: ₹{paymentMethod === "online" ? total : 100}
+                    </p>
                   </div>
-                  
-                  <Button 
-                    onClick={openUpiApp}
-                    className="w-full"
-                    variant="outline"
-                  >
+
+                  <Button onClick={openUpiApp} className="w-full" variant="outline">
                     Open in UPI App
                   </Button>
                 </div>
@@ -182,11 +177,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="flex gap-4">
-              <Button
-                variant="outline"
-                onClick={() => setShowPayment(false)}
-                className="w-full"
-              >
+              <Button variant="outline" onClick={() => setShowPayment(false)} className="w-full">
                 Back
               </Button>
               <Button
@@ -215,11 +206,7 @@ export default function CheckoutPage() {
             <CardContent className="space-y-4">
               {cart.map((item) => (
                 <div key={item._id} className="flex gap-4 border-b pb-4">
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded"
-                  />
+                  <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded" />
                   <div className="flex-1">
                     <h3 className="font-medium">{item.name}</h3>
                     <p className="text-sm">
@@ -255,11 +242,7 @@ export default function CheckoutPage() {
             <CardContent className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="customerName">Full Name</Label>
-                <Input
-                  id="customerName"
-                  {...register("customerName")}
-                  placeholder="Enter your full name"
-                />
+                <Input id="customerName" {...register("customerName")} placeholder="Enter your full name" />
                 {errors.customerName && (
                   <p className="text-sm text-destructive">{errors.customerName.message}</p>
                 )}
@@ -267,11 +250,7 @@ export default function CheckoutPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="phoneNumber">Phone Number</Label>
-                <Input
-                  id="phoneNumber"
-                  {...register("phoneNumber")}
-                  placeholder="Enter your phone number"
-                />
+                <Input id="phoneNumber" {...register("phoneNumber")} placeholder="Enter your phone number" />
                 {errors.phoneNumber && (
                   <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
                 )}
@@ -279,42 +258,24 @@ export default function CheckoutPage() {
 
               <div className="grid gap-2">
                 <Label htmlFor="alternatePhone">Alternate Phone (Optional)</Label>
-                <Input
-                  id="alternatePhone"
-                  {...register("alternatePhone")}
-                  placeholder="Enter alternate phone number"
-                />
+                <Input id="alternatePhone" {...register("alternatePhone")} placeholder="Enter alternate phone number" />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="instagramId">Instagram ID (Optional)</Label>
-                <Input
-                  id="instagramId"
-                  {...register("instagramId")}
-                  placeholder="Enter your Instagram username"
-                />
+                <Input id="instagramId" {...register("instagramId")} placeholder="Enter your Instagram username" />
               </div>
 
               <div className="grid gap-2">
                 <Label htmlFor="address">Address</Label>
-                <Textarea
-                  id="address"
-                  {...register("address")}
-                  placeholder="Enter your full address"
-                />
-                {errors.address && (
-                  <p className="text-sm text-destructive">{errors.address.message}</p>
-                )}
+                <Textarea id="address" {...register("address")} placeholder="Enter your full address" />
+                {errors.address && <p className="text-sm text-destructive">{errors.address.message}</p>}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="district">District</Label>
-                  <Input
-                    id="district"
-                    {...register("district")}
-                    placeholder="Enter your district"
-                  />
+                  <Input id="district" {...register("district")} placeholder="Enter your district" />
                   {errors.district && (
                     <p className="text-sm text-destructive">{errors.district.message}</p>
                   )}
@@ -322,38 +283,51 @@ export default function CheckoutPage() {
 
                 <div className="grid gap-2">
                   <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    {...register("state")}
-                    placeholder="Enter your state"
-                  />
-                  {errors.state && (
-                    <p className="text-sm text-destructive">{errors.state.message}</p>
-                  )}
+                  <Input id="state" {...register("state")} placeholder="Enter your state" />
+                  {errors.state && <p className="text-sm text-destructive">{errors.state.message}</p>}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label htmlFor="pincode">Pincode</Label>
-                  <Input
-                    id="pincode"
-                    {...register("pincode")}
-                    placeholder="Enter your pincode"
-                  />
-                  {errors.pincode && (
-                    <p className="text-sm text-destructive">{errors.pincode.message}</p>
-                  )}
+                  <Input id="pincode" {...register("pincode")} placeholder="Enter your pincode" />
+                  {errors.pincode && <p className="text-sm text-destructive">{errors.pincode.message}</p>}
                 </div>
 
                 <div className="grid gap-2">
                   <Label htmlFor="landmark">Landmark (Optional)</Label>
-                  <Input
-                    id="landmark"
-                    {...register("landmark")}
-                    placeholder="Enter nearby landmark"
-                  />
+                  <Input id="landmark" {...register("landmark")} placeholder="Enter nearby landmark" />
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Payment Method Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Method</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="online"
+                  value="online"
+                  checked={paymentMethod === "online"}
+                  onChange={() => setPaymentMethod("online")}
+                />
+                <Label htmlFor="online">Online (Full Payment)</Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="radio"
+                  id="cod"
+                  value="cod"
+                  checked={paymentMethod === "cod"}
+                  onChange={() => setPaymentMethod("cod")}
+                />
+                <Label htmlFor="cod">Cash on Delivery (₹100 Advance)</Label>
               </div>
             </CardContent>
           </Card>

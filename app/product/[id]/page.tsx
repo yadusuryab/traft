@@ -135,7 +135,7 @@ const ProductPage = async ({ params }: Props) => {
   };
 
   return (
-    <div className="min-h-screen px-4 pt-4">
+    <div className="min-h-screen pt-4">
       {/* Add structured data to the page */}
       <script
         type="application/ld+json"
