@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Audiowide, Geist, Geist_Mono, Inter, Michroma, Quantico } from "next/font/google";
 import "./globals.css";
 import Header from "@/components/layout/header";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -8,9 +8,10 @@ import { Toaster } from "sonner";
 import OGImage from '@/public/og-image.png'
 import React from "react";
 
-const geistSans = Inter({
+const geistSans = Audiowide({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+  weight:['400']
 });
 
 const geistMono = Geist_Mono({

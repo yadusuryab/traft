@@ -182,7 +182,7 @@ export default function AboutUsSection() {
           >
             DISCOVER OUR STORY
           </motion.span>
-          <h2 className="text-4xl md:text-5xl font-serif italic mb-4 text-center">
+          <h2 className="text-4xl md:text-5xl   mb-4 text-center">
             About Us
           </h2>
           <motion.div
@@ -194,7 +194,7 @@ export default function AboutUsSection() {
         </motion.div>
 
         <motion.p
-          className="text-center max-w-2xl mx-auto mb-16 text-muted-forground/80 italic font-serif"
+          className="text-center max-w-2xl mx-auto mb-16 text-muted-forground/80  "
           variants={itemVariants}
         >
           We’re a Kerala-based watch store from Tirur, Malappuram, trusted for
