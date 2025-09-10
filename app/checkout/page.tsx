@@ -1,6 +1,6 @@
 // app/checkout/page.tsx
 "use client";
-
+import { AlertCircle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,8 @@ import { z } from "zod";
 import { checkoutSchema } from "@/lib/validations";
 import { QRCodeCanvas } from "qrcode.react";
 import { Loader2, InfoIcon, Truck, CreditCard, Scan } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
 
 type CartItem = {
   _id: string;
@@ -144,7 +146,7 @@ export default function CheckoutPage() {
           <div className={`rounded-full h-8 w-8 flex items-center justify-center ${showPayment ? "bg-primary" : "bg-primary"}`}>
             <span className="text-white text-sm">1</span>
           </div>
-          <div className="ml-2 text-sm font-medium">Information</div>
+          <div className="ml-2 text-sm font-medium">Product</div>
         </div>
         
         <div className="h-0.5 w-12 bg-muted mx-2"></div>
@@ -153,7 +155,7 @@ export default function CheckoutPage() {
           <div className={`rounded-full h-8 w-8 flex items-center justify-center ${showPayment ? "bg-primary" : "bg-muted"}`}>
             <span className="text-white text-sm">2</span>
           </div>
-          <div className="ml-2 text-sm font-medium">Payment</div>
+          <div className="ml-2 text-sm font-medium">Pay</div>
         </div>
         
         <div className="h-0.5 w-12 bg-muted mx-2"></div>
@@ -162,10 +164,30 @@ export default function CheckoutPage() {
           <div className="rounded-full h-8 w-8 flex items-center justify-center bg-muted">
             <span className="text-white text-sm">3</span>
           </div>
-          <div className="ml-2 text-sm font-medium">Confirmation</div>
+          <div className="ml-2 text-sm font-medium">Confirm</div>
         </div>
       </div>
 
+<div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+  <div className="flex items-start gap-3">
+    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+    <div className="text-amber-800 text-sm">
+      <p className="font-medium mb-1">Important: Please Read Our Return Policy</p>
+      <p className="text-amber-700">
+        Before completing your purchase, please review our{" "}
+        <Link 
+          href="/terms" 
+          className="text-amber-900 underline font-medium hover:text-amber-700 transition-colors"
+          target="_blank"
+        >
+          return policy
+        </Link>
+        . All sales are final unless otherwise specified. 
+        Some items may have specific return conditions please read it before ordering.
+      </p>
+    </div>
+  </div>
+</div>
       <h1 className="text-3xl font-bold text-center">Checkout</h1>
 
       {showPayment ? (
@@ -493,7 +515,10 @@ export default function CheckoutPage() {
                       <Label htmlFor="cod" className="flex-1 cursor-pointer font-normal">
   <div className="flex justify-between items-center">
     <span>Cash on Delivery</span>
-    <span className="text-sm text-red-500">+ ₹100 Extra</span>
+    <div >
+    <span className="text-sm text-red-500">+ ₹100 Extra </span>
+    <Badge className="text-xs w-fit">Advance</Badge>
+    </div>
   </div>
 </Label>
 
@@ -506,7 +531,22 @@ export default function CheckoutPage() {
                   </div>
                 </CardContent>
               </Card>
-
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+  <div className="flex items-center gap-3">
+    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+    <p className="text-amber-800 text-sm">
+      Please review our{" "}
+      <Link 
+        href="/terms" 
+        className="font-medium underline hover:text-amber-700 transition-colors"
+        target="_blank"
+      >
+        return policy
+      </Link>{" "}
+      before completing your purchase.
+    </p>
+  </div>
+</div>
               <Button type="submit" className="w-full" size="lg">
                 Proceed to Payment
               </Button>
@@ -515,6 +555,7 @@ export default function CheckoutPage() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
+            
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -566,7 +607,24 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
             </Card>
+            
           </div>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+  <div className="flex items-center gap-3">
+    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+    <p className="text-amber-800 text-sm">
+      Please review our{" "}
+      <Link 
+        href="/terms" 
+        className="font-medium underline hover:text-amber-700 transition-colors"
+        target="_blank"
+      >
+        return policy
+      </Link>{" "}
+      before completing your purchase.
+    </p>
+  </div>
+</div>
         </div>
       )}
     </div>
