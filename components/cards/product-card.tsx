@@ -25,7 +25,7 @@ function ProductCard({ id, name, imageUrl, salesPrice, price, isNew = false, isB
         whileHover={{ y: -5 }}
         transition={{ type: 'spring', stiffness: 400, damping: 10 }}
       >
-        <div className="relative h-80 w-full overflow-hidden shadow-lg bg-gray-50">
+        <div className="relative aspect-[3/4]  w-full overflow-hidden shadow-lg bg-gray-50">
           {/* Product Image with subtle overlay */}
           <Image
             src={imageUrl}
