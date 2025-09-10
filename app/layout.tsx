@@ -11,7 +11,7 @@ import React from "react";
 const geistSans = Montserrat({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight:['400']
+  weight:['700']
 });
 
 const geistMono = Geist_Mono({

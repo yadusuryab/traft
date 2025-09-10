@@ -63,7 +63,7 @@ function ProductCard({ id, name, imageUrl, salesPrice, price, isNew = false, isB
 
         {/* Product Info */}
         <div className="mt-4 space-y-1">
-          <h3 className="font-medium  truncate">{name}</h3>
+          <h3 className="font-medium uppercase  truncate">{name}</h3>
           <StarRating_Basic value={rating} readOnly iconSize={12} className='fill-primary'/>
           <div className="flex items-center gap-2">
             <PriceFormat_Sale

@@ -149,7 +149,7 @@ const ProductPage = async ({ params }: Props) => {
           classNameImage={"object-fit-contain"}
         />
         <div>
-          <h1 className="md:text-2xl text-xl font-medium tracking-tight">
+          <h1 className="md:text-2xl text-xl uppercase font-medium tracking-tight">
             {product.name}
           </h1>
           <div className="mt-4">
