@@ -491,15 +491,18 @@ export default function CheckoutPage() {
                         {paymentMethod === "cod" && <div className="h-2 w-2 rounded-full bg-white"></div>}
                       </div>
                       <Label htmlFor="cod" className="flex-1 cursor-pointer font-normal">
-                        <div className="flex justify-between items-center">
-                          <span>Cash on Delivery (₹100 Advance)</span>
-                          <span className="text-sm">+ ₹100 COD charge</span>
-                        </div>
-                      </Label>
+  <div className="flex justify-between items-center">
+    <span>Cash on Delivery</span>
+    <span className="text-sm text-red-500">+ ₹100 Extra</span>
+  </div>
+</Label>
+
                     </div>
-                    <p className="text-sm text-muted-foreground pl-8 mt-1">
-                      Pay ₹100 now and the remaining amount when your order is delivered
-                    </p>
+                  
+<p className="text-sm text-muted-foreground pl-8 mt-1">
+  An additional ₹100 COD charge will be added on top of your product amount.
+</p>
+
                   </div>
                 </CardContent>
               </Card>
