@@ -80,7 +80,7 @@ function Header() {
                 </nav>
                 <div className="p-4 border-t">
                   <p className="text-xs text-muted-foreground">
-                    © {new Date().getFullYear()} Your Store
+                    © {new Date().getFullYear()} {process.env.NEXT_PUBLIC_APP_NAME}
                   </p>
                 </div>
               </div>
