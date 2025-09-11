@@ -11,7 +11,12 @@ import React from "react";
 const geistSans = Montserrat({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight:['700']
+  weight: ["400", "700"],
+});
+const geistSans2 = Montserrat({
+  variable: "--font-mont",
+  subsets: ["latin"],
+  weight:['400']
 });
 
 const geistMono = Geist_Mono({
@@ -83,7 +88,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
      
       <body
-        className={`${geistSans.className} ${geistMono.variable} antialiased`}
+        className={`${geistSans.className} ${geistMono.variable} ${geistSans2.variable} antialiased`}
       >
        
           <Header />
