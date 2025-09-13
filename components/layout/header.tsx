@@ -31,14 +31,13 @@ function Header() {
     { name: "Track Order", href: "/track-order", icon: Truck },
     { name: "Cart", href: "/cart", icon: ShoppingBag },
     { name: "Return Policy", href: "/terms", icon: FileText },
- 
   ];
 
   return (
     <header className="bg-background backdrop-blur-md fixed w-full px-4 py-3 border-b z-50 top-0 left-0 right-0">
       <div className="flex items-center justify-between">
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
+        {/* Mobile Menu Button - Left side on mobile */}
+        <div className="md:hidden flex items-center">
           <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
             <SheetTrigger asChild>
               <button
@@ -88,12 +87,43 @@ function Header() {
           </Sheet>
         </div>
 
-        {/* Brand Logo */}
-        <Link href="/" className="flex-shrink-0 md:mx-auto md:flex md:justify-center">
-          <Brand />
-        </Link>
+        {/* Brand Logo - Center on mobile, left on desktop */}
+        <div className="flex-1 md:flex-none flex justify-center md:justify-start">
+          <Link href="/" className="flex-shrink-0 z-10">
+            <Brand />
+          </Link>
+        </div>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Search - Center */}
+        {isHomePage && (
+          <form onSubmit={handleSearch} className="hidden md:flex flex-1 max-w-2xl mx-8 relative">
+            <Input
+              placeholder="Search our store..."
+              className="h-10 w-full bg-secondary border-none rounded-full pr-10 text-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="p-1 mr-1 text-muted-foreground hover:text-foreground"
+                >
+                  <X size={14} />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="p-1 text-muted-foreground hover:text-foreground"
+              >
+                <Search size={16} />
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* Desktop Navigation - Right side */}
         <div className="hidden md:flex items-center gap-1">
           <Link
             href="/"
@@ -113,38 +143,16 @@ function Header() {
           >
             Terms
           </Link>
+          <Link
+            href="/cart"
+            className={buttonVariants({ size: "icon", variant: "ghost" })}
+          >
+            <ShoppingBag size={20} />
+          </Link>
         </div>
 
-        {/* Search and Cart */}
-        <div className="flex items-center gap-2">
-          {isHomePage && (
-            <form onSubmit={handleSearch} className="hidden md:block relative">
-              <Input
-                placeholder="Search our store..."
-                className="h-9 w-48 bg-secondary border-none rounded-full pr-10 text-sm"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center">
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={clearSearch}
-                    className="p-1 mr-1 text-muted-foreground hover:text-foreground"
-                  >
-                    <X size={14} />
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  className="p-1 text-muted-foreground hover:text-foreground"
-                >
-                  <Search size={16} />
-                </button>
-              </div>
-            </form>
-          )}
-
+        {/* Mobile Cart - Right side on mobile */}
+        <div className="md:hidden flex items-center">
           <Link
             href="/cart"
             className={buttonVariants({ size: "icon", variant: "ghost" })}
