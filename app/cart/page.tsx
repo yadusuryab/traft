@@ -264,7 +264,7 @@ function CartPage() {
                   <span>Shipping</span>
                   <span>
                  
-                      ₹{shippingCost === 0 ? "Free" : shippingCost}
+                      {shippingCost === 0 ? "Free" : '₹ ' + shippingCost}
                   
                   </span>
                 </div>
