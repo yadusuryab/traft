@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 
-const SHIPPING_COST = 30;
+const SHIPPING_COST = 0;
 
 
 function CartPage() {
@@ -264,7 +264,7 @@ function CartPage() {
                   <span>Shipping</span>
                   <span>
                  
-                      ₹{shippingCost.toFixed(2)}
+                      ₹{shippingCost === 0 ? "Free" : shippingCost}
                   
                   </span>
                 </div>
