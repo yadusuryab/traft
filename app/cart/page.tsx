@@ -37,7 +37,8 @@ function CartPage() {
   }, []);
 
   const updateCartQty = (id: string, newQty: number) => {
-    if (newQty < 1) return;
+    // Prevent quantity from going below 1
+    if (newQty < 1) newQty = 1;
     
     const product = cart.find((item) => item._id === id);
     if (!product) return;
@@ -48,7 +49,10 @@ function CartPage() {
     );
     setCart(updated);
     localStorage.setItem("cart", JSON.stringify(updated));
-    toast(`Cart Updated. Max quantity is ${product.maxQty}`);
+    
+    if (newQtyLimited !== newQty) {
+      toast(`Cart Updated. Max quantity is ${product.maxQty}`);
+    }
   };
 
   const removeFromCart = (id: string) => {
