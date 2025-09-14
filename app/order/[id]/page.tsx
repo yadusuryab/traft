@@ -13,7 +13,7 @@ import Link from "next/link";
 
 type Product = {
   _id: string;
-  title: string;
+  name: string;
   price: number;
   salesPrice: number;
   images: any[]; // Changed from 'image' to 'images' to match your schema
@@ -123,7 +123,7 @@ export default function OrderPage({ params }: Props) {
     const productsText = order.products
       .map(
         (item) =>
-          `${item.product.title} (Qty: ${item.quantity}, Size: ${item.size}${
+          `${item.product.name} (Qty: ${item.quantity}, Size: ${item.size}${
             item.color ? `, Color: ${item.color}` : ""
           }) - ₹${item.product.salesPrice * item.quantity}`
       )
@@ -177,7 +177,7 @@ export default function OrderPage({ params }: Props) {
                 <Link href={`/product/${item.product.id}`}>
                   <Image
                     src={urlFor(item.product.images[0])?.url()}
-                    alt={item.product.title}
+                    alt={item.product.name}
                     width={80}
                     height={80}
                     className="w-20 h-20 object-cover rounded cursor-pointer"
@@ -186,7 +186,7 @@ export default function OrderPage({ params }: Props) {
                 <div className="flex-1">
                   <Link href={`/product/${item.product.id}`}>
                     <h3 className="font-medium hover:underline cursor-pointer">
-                      {item.product.title}
+                      {item.product.name}
                     </h3>
                   </Link>
                   <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
