@@ -9,13 +9,17 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { urlFor } from "@/lib/sanity";
+import Link from "next/link";
 
 type Product = {
   _id: string;
   title: string;
   price: number;
   salesPrice: number;
-  image: string;
+  images: any[]; // Changed from 'image' to 'images' to match your schema
+  slug: {
+    current: string;
+  };
 };
 
 type OrderItem = {
@@ -42,7 +46,6 @@ type Order = {
   shippingCharges: number;
   orderStatus: string;
   orderedAt: string;
- 
   totalAmount: number;
 };
 
@@ -115,6 +118,7 @@ export default function OrderPage({ params }: Props) {
     (sum, item) => sum + item.product.salesPrice * item.quantity,
     0
   );
+  
   const generateWhatsAppMessage = (order: Order) => {
     const productsText = order.products
       .map(
@@ -170,15 +174,21 @@ export default function OrderPage({ params }: Props) {
                 key={index}
                 className="flex gap-4 border-b pb-4 last:border-b-0"
               >
-                <Image
-                  src={urlFor(item.product.images[0])?.url()}
-                  alt={item.product.title}
-                  width={80}
-                  height={80}
-                  className="w-20 h-20 object-cover rounded"
-                />
+                <Link href={`/product/${item.product.slug.current}`}>
+                  <Image
+                    src={urlFor(item.product.images[0])?.url()}
+                    alt={item.product.title}
+                    width={80}
+                    height={80}
+                    className="w-20 h-20 object-cover rounded cursor-pointer"
+                  />
+                </Link>
                 <div className="flex-1">
-                  <h3 className="font-medium">{item.product.title}</h3>
+                  <Link href={`/product/${item.product.slug.current}`}>
+                    <h3 className="font-medium hover:underline cursor-pointer">
+                      {item.product.title}
+                    </h3>
+                  </Link>
                   <div className="grid grid-cols-2 gap-2 mt-2 text-sm">
                     <div>
                       <span className="text-muted-foreground">Price:</span>{" "}
