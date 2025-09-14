@@ -174,7 +174,7 @@ export default function OrderPage({ params }: Props) {
                 key={index}
                 className="flex gap-4 border-b pb-4 last:border-b-0"
               >
-                <Link href={`/product/${item.product.slug?.current}`}>
+                <Link href={`/product/${item.product.id}`}>
                   <Image
                     src={urlFor(item.product.images[0])?.url()}
                     alt={item.product.title}
@@ -184,7 +184,7 @@ export default function OrderPage({ params }: Props) {
                   />
                 </Link>
                 <div className="flex-1">
-                  <Link href={`/product/${item.product.slug?.current}`}>
+                  <Link href={`/product/${item.product.id}`}>
                     <h3 className="font-medium hover:underline cursor-pointer">
                       {item.product.title}
                     </h3>
