@@ -60,7 +60,8 @@ export class TelegramService {
       .join('\n');
 
     return `
-🛍️ *NEW ORDER #${order._id.slice(-6).toUpperCase()}* 🛍️
+    *YOU HAVE A NEW ORDER*
+🛍️ *ORDER #${order._id.slice(-6).toUpperCase()}* 🛍️
 📅 *Date:* ${new Date(order.orderedAt).toLocaleString()}
 
 👤 *Customer Details:*
