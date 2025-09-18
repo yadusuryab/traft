@@ -45,7 +45,7 @@ export default function Hero() {
         />
       )}
 
-      <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" />
+      {/* <div className="absolute inset-0 bg-gradient-to-r from-black/50 to-transparent" /> */}
 
       <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
         {banner.title && (
