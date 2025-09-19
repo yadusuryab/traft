@@ -6,6 +6,7 @@ export type Product = {
   name: string;
   images: { url: string; title?: string }[];
   sizes?: string[];
+  colours?: string[];
   features?: string[];
   description?: string;
   image: string;

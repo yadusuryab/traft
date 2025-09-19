@@ -84,6 +84,7 @@ if (q) {
           price,
           salesPrice,
           sizes,
+          colours,
            rating,
           features,
           description,

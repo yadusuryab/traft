@@ -15,6 +15,7 @@ export async function GET(request: Request, { params }: Props) {
     rating,
     salesPrice,
     sizes,
+    colors,
     features,
     quantity,
     description,

@@ -55,11 +55,14 @@ export class TelegramService {
       ? 'Cash on Delivery' 
       : `Online (${order.paymentStatus ? 'Paid' : 'Pending'})`;
 
-    const productsList = order.products
-      .map(p => `➤ [${p.product.name}](${this.getProductUrl(p.product._id)}) \n   • Qty: ${p.quantity}${p.size ? ` • Size: ${p.size}` : ''}`)
+      const productsList = order.products
+      .map(
+        (p) => 
+          `➤ [${p.product.name}](${this.getProductUrl(p.product._id)}) \n   • Qty: ${p.quantity}${p.size ? ` • Size: ${p.size}` : ''}${p.color ? ` • Color: ${p.color}` : ''}`
+      )
       .join('\n');
-
-    return `
+    
+const msg = `
     *YOU HAVE A NEW ORDER*
 🛍️ *ORDER #${order._id.slice(-6).toUpperCase()}* 🛍️
 📅 *Date:* ${new Date(order.orderedAt).toLocaleString()}
@@ -84,6 +87,8 @@ ${order.district}, ${order.state} - ${order.pincode}
 
 🚚 *Shipping Method:* Standard Delivery
     `.trim();
+    console.log(msg)
+    return  msg
   }
 
   private static getProductUrl(productId: string): string {

@@ -7,7 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -23,8 +29,8 @@ type CartItem = {
   name: string;
   salesPrice: number;
   cartQty: number;
-  size: string;
-  color?: string;
+  size?: string | null;
+  color?: string | null;
   image: string;
 };
 
@@ -38,7 +44,9 @@ export default function CheckoutPage() {
   const [transactionId, setTransactionId] = useState("");
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
+    "online"
+  );
 
   const router = useRouter();
 
@@ -65,7 +73,10 @@ export default function CheckoutPage() {
     }
   }, [paymentMethod]);
 
-  const subtotal = cart.reduce((acc, item) => acc + item.salesPrice * item.cartQty, 0);
+  const subtotal = cart.reduce(
+    (acc, item) => acc + item.salesPrice * item.cartQty,
+    0
+  );
   const total = subtotal + shippingCharges;
 
   const generateUpiLink = (amount: number) => {
@@ -79,7 +90,10 @@ export default function CheckoutPage() {
 
     if (!showPayment) {
       setQrCodeValue(generateUpiLink(paymentAmount));
-      localStorage.setItem("pendingOrder", JSON.stringify({ ...data, cart, total, paymentMethod }));
+      localStorage.setItem(
+        "pendingOrder",
+        JSON.stringify({ ...data, cart, total, paymentMethod })
+      );
       setShowPayment(true);
       window.scrollTo(0, 0);
       return;
@@ -92,8 +106,8 @@ export default function CheckoutPage() {
         products: cart.map((p) => ({
           product: p._id,
           quantity: p.cartQty,
-          size: p.size,
-          color: p.color,
+          size: p.size || null,
+          color: p.color || null,
         })),
         paymentMode: paymentMethod,
         shippingCharges,
@@ -132,8 +146,12 @@ export default function CheckoutPage() {
     return (
       <div className="max-w-2xl mx-auto p-4 text-center py-12">
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
-        <p className="text-muted-foreground mb-6">Add some products to your cart before checking out</p>
-        <Button onClick={() => router.push("/products")}>Continue Shopping</Button>
+        <p className="text-muted-foreground mb-6">
+          Add some products to your cart before checking out
+        </p>
+        <Button onClick={() => router.push("/products")}>
+          Continue Shopping
+        </Button>
       </div>
     );
   }
@@ -143,23 +161,31 @@ export default function CheckoutPage() {
       {/* Progress Indicator */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center">
-          <div className={`rounded-full h-8 w-8 flex items-center justify-center ${showPayment ? "bg-primary" : "bg-primary"}`}>
+          <div
+            className={`rounded-full h-8 w-8 flex items-center justify-center ${
+              showPayment ? "bg-primary" : "bg-primary"
+            }`}
+          >
             <span className="text-white text-sm">1</span>
           </div>
           <div className="ml-2 text-sm font-medium">Product</div>
         </div>
-        
+
         <div className="h-0.5 w-12 bg-muted mx-2"></div>
-        
+
         <div className="flex items-center">
-          <div className={`rounded-full h-8 w-8 flex items-center justify-center ${showPayment ? "bg-primary" : "bg-muted"}`}>
+          <div
+            className={`rounded-full h-8 w-8 flex items-center justify-center ${
+              showPayment ? "bg-primary" : "bg-muted"
+            }`}
+          >
             <span className="text-white text-sm">2</span>
           </div>
           <div className="ml-2 text-sm font-medium">Pay</div>
         </div>
-        
+
         <div className="h-0.5 w-12 bg-muted mx-2"></div>
-        
+
         <div className="flex items-center">
           <div className="rounded-full h-8 w-8 flex items-center justify-center bg-muted">
             <span className="text-white text-sm">3</span>
@@ -168,26 +194,28 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-<div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-  <div className="flex items-start gap-3">
-    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
-    <div className="text-amber-800 text-sm">
-      <p className="font-medium mb-1">Important: Please Read Our Return Policy</p>
-      <p className="text-amber-700">
-        Before completing your purchase, please review our{" "}
-        <Link 
-          href="/terms" 
-          className="text-amber-900 underline font-medium hover:text-amber-700 transition-colors"
-          target="_blank"
-        >
-          return policy
-        </Link>
-        . All sales are final unless otherwise specified. 
-        Some items may have specific return conditions please read it before ordering.
-      </p>
-    </div>
-  </div>
-</div>
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+          <div className="text-amber-800 text-sm">
+            <p className="font-medium mb-1">
+              Important: Please Read Our Return Policy
+            </p>
+            <p className="text-amber-700">
+              Before completing your purchase, please review our{" "}
+              <Link
+                href="/terms"
+                className="text-amber-900 underline font-medium hover:text-amber-700 transition-colors"
+                target="_blank"
+              >
+                return policy
+              </Link>
+              . All sales are final unless otherwise specified. Some items may
+              have specific return conditions please read it before ordering.
+            </p>
+          </div>
+        </div>
+      </div>
       <h1 className="text-3xl font-bold text-center">Checkout</h1>
 
       {showPayment ? (
@@ -199,10 +227,11 @@ export default function CheckoutPage() {
                 Complete Payment
               </CardTitle>
               <CardDescription>
-                {paymentMethod === "online" 
+                {paymentMethod === "online"
                   ? `Please complete your payment of ₹${total} to confirm your order`
-                  : `Please pay the ₹100 advance to confirm your COD order. The remaining ₹${total - 100} will be collected on delivery.`
-                }
+                  : `Please pay the ₹100 advance to confirm your COD order. The remaining ₹${
+                      total - 100
+                    } will be collected on delivery.`}
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
@@ -212,25 +241,35 @@ export default function CheckoutPage() {
                   UPI Payment
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Scan the QR code using any UPI app or click the button below to open your preferred payment app
+                  Scan the QR code using any UPI app or click the button below
+                  to open your preferred payment app
                 </p>
-                
+
                 <div className="flex flex-col md:flex-row gap-6 items-center">
                   <div className="border-2 border-primary/20 rounded-lg p-4 bg-white shadow-sm">
-                    <QRCodeCanvas value={qrCodeValue} size={200} level="H" includeMargin={true} />
+                    <QRCodeCanvas
+                      value={qrCodeValue}
+                      size={200}
+                      level="H"
+                      includeMargin={true}
+                    />
                   </div>
 
                   <div className="flex-1 space-y-3">
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Amount to pay:</p>
-                      <p className="text-2xl font-bold">₹{paymentMethod === "online" ? total : 100}</p>
+                      <p className="text-2xl font-bold">
+                        ₹{paymentMethod === "online" ? total : 100}
+                      </p>
                     </div>
-                    
+
                     <div className="space-y-1">
                       <p className="text-sm font-medium">UPI ID:</p>
-                      <p className="text-lg font-mono bg-muted p-2 rounded">{process.env.NEXT_PUBLIC_UPI_ID}</p>
+                      <p className="text-lg font-mono bg-muted p-2 rounded">
+                        {process.env.NEXT_PUBLIC_UPI_ID}
+                      </p>
                     </div>
-                    
+
                     <Button onClick={openUpiApp} className="w-full" size="lg">
                       Open in UPI App
                     </Button>
@@ -252,14 +291,15 @@ export default function CheckoutPage() {
                 />
                 <p className="text-sm text-muted-foreground flex items-start gap-1">
                   <InfoIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  After completing payment, please enter the transaction ID provided by your payment app for verification.
+                  After completing payment, please enter the transaction ID
+                  provided by your payment app for verification.
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowPayment(false)} 
+                <Button
+                  variant="outline"
+                  onClick={() => setShowPayment(false)}
                   className="flex-1"
                   size="lg"
                 >
@@ -283,7 +323,7 @@ export default function CheckoutPage() {
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Order Summary Sidebar */}
           <Card>
             <CardHeader>
@@ -292,8 +332,15 @@ export default function CheckoutPage() {
             <CardContent>
               <div className="space-y-4">
                 {cart.map((item) => (
-                  <div key={item._id} className="flex gap-4 border-b pb-4 last:border-0 last:pb-0">
-                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                  <div
+                    key={item._id}
+                    className="flex gap-4 border-b pb-4 last:border-0 last:pb-0"
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.name}
+                      className="w-16 h-16 object-cover rounded-lg"
+                    />
                     <div className="flex-1">
                       <h3 className="font-medium">{item.name}</h3>
                       <p className="text-sm text-muted-foreground">
@@ -301,18 +348,24 @@ export default function CheckoutPage() {
                       </p>
                       <div className="flex gap-2 mt-1">
                         {item.size && (
-                          <span className="text-xs bg-muted px-2 py-1 rounded-full">Size: {item.size}</span>
+                          <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                            Size: {item.size}
+                          </span>
                         )}
                         {item.color && (
-                          <span className="text-xs bg-muted px-2 py-1 rounded-full">Color: {item.color}</span>
+                          <span className="text-xs bg-muted px-2 py-1 rounded-full">
+                            Color: {item.color}
+                          </span>
                         )}
                       </div>
-                      <p className="font-medium mt-1">₹{item.salesPrice * item.cartQty}</p>
+                      <p className="font-medium mt-1">
+                        ₹{item.salesPrice * item.cartQty}
+                      </p>
                     </div>
                   </div>
                 ))}
               </div>
-              
+
               <div className="space-y-3 pt-6 border-t mt-4">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
@@ -329,7 +382,7 @@ export default function CheckoutPage() {
                   <span>Total</span>
                   <span>₹{total}</span>
                 </div>
-                
+
                 <div className="flex items-start gap-2 pt-3 text-sm text-muted-foreground">
                   <Truck className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   <span>{deliveryTime}</span>
@@ -345,52 +398,68 @@ export default function CheckoutPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Shipping Information</CardTitle>
-                  <CardDescription>Enter your details for order delivery</CardDescription>
+                  <CardDescription>
+                    Enter your details for order delivery
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="customerName">Full Name <span className="text-destructive">*</span></Label>
-                    <Input 
-                      id="customerName" 
-                      {...register("customerName")} 
-                      placeholder="Enter your full name" 
-                      className={errors.customerName ? "border-destructive" : ""}
+                    <Label htmlFor="customerName">
+                      Full Name <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="customerName"
+                      {...register("customerName")}
+                      placeholder="Enter your full name"
+                      className={
+                        errors.customerName ? "border-destructive" : ""
+                      }
                     />
                     {errors.customerName && (
-                      <p className="text-sm text-destructive">{errors.customerName.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.customerName.message}
+                      </p>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="phoneNumber">Phone Number <span className="text-destructive">*</span></Label>
-                      <Input 
-                        id="phoneNumber" 
-                        {...register("phoneNumber")} 
-                        placeholder="10-digit mobile number" 
-                        className={errors.phoneNumber ? "border-destructive" : ""}
+                      <Label htmlFor="phoneNumber">
+                        Phone Number <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="phoneNumber"
+                        {...register("phoneNumber")}
+                        placeholder="10-digit mobile number"
+                        className={
+                          errors.phoneNumber ? "border-destructive" : ""
+                        }
                       />
                       {errors.phoneNumber && (
-                        <p className="text-sm text-destructive">{errors.phoneNumber.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.phoneNumber.message}
+                        </p>
                       )}
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="alternatePhone">Alternate Phone (Optional)</Label>
-                      <Input 
-                        id="alternatePhone" 
-                        {...register("alternatePhone")} 
-                        placeholder="Alternate contact number" 
+                      <Label htmlFor="alternatePhone">
+                        Alternate Phone (Optional)
+                      </Label>
+                      <Input
+                        id="alternatePhone"
+                        {...register("alternatePhone")}
+                        placeholder="Alternate contact number"
                       />
                     </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="instagramId">Instagram ID (Optional)</Label>
-                    <Input 
-                      id="instagramId" 
-                      {...register("instagramId")} 
-                      placeholder="@username" 
+                    <Input
+                      id="instagramId"
+                      {...register("instagramId")}
+                      placeholder="@username"
                     />
                     <p className="text-sm text-muted-foreground">
                       Helpful for order-related communication
@@ -398,66 +467,83 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="address">Complete Address <span className="text-destructive">*</span></Label>
-                    <Textarea 
-                      id="address" 
-                      {...register("address")} 
-                      placeholder="House no., Building, Street, Area" 
+                    <Label htmlFor="address">
+                      Complete Address{" "}
+                      <span className="text-destructive">*</span>
+                    </Label>
+                    <Textarea
+                      id="address"
+                      {...register("address")}
+                      placeholder="House no., Building, Street, Area"
                       rows={3}
                       className={errors.address ? "border-destructive" : ""}
                     />
                     {errors.address && (
-                      <p className="text-sm text-destructive">{errors.address.message}</p>
+                      <p className="text-sm text-destructive">
+                        {errors.address.message}
+                      </p>
                     )}
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="district">District <span className="text-destructive">*</span></Label>
-                      <Input 
-                        id="district" 
-                        {...register("district")} 
-                        placeholder="Your district" 
+                      <Label htmlFor="district">
+                        District <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="district"
+                        {...register("district")}
+                        placeholder="Your district"
                         className={errors.district ? "border-destructive" : ""}
                       />
                       {errors.district && (
-                        <p className="text-sm text-destructive">{errors.district.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.district.message}
+                        </p>
                       )}
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="state">State <span className="text-destructive">*</span></Label>
-                      <Input 
-                        id="state" 
-                        {...register("state")} 
-                        placeholder="Your state" 
+                      <Label htmlFor="state">
+                        State <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="state"
+                        {...register("state")}
+                        placeholder="Your state"
                         className={errors.state ? "border-destructive" : ""}
                       />
                       {errors.state && (
-                        <p className="text-sm text-destructive">{errors.state.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.state.message}
+                        </p>
                       )}
                     </div>
 
                     <div className="grid gap-2">
-                      <Label htmlFor="pincode">Pincode <span className="text-destructive">*</span></Label>
-                      <Input 
-                        id="pincode" 
-                        {...register("pincode")} 
-                        placeholder="6-digit pincode" 
+                      <Label htmlFor="pincode">
+                        Pincode <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="pincode"
+                        {...register("pincode")}
+                        placeholder="6-digit pincode"
                         className={errors.pincode ? "border-destructive" : ""}
                       />
                       {errors.pincode && (
-                        <p className="text-sm text-destructive">{errors.pincode.message}</p>
+                        <p className="text-sm text-destructive">
+                          {errors.pincode.message}
+                        </p>
                       )}
                     </div>
                   </div>
 
                   <div className="grid gap-2">
                     <Label htmlFor="landmark">Landmark (Optional)</Label>
-                    <Input 
-                      id="landmark" 
-                      {...register("landmark")} 
-                      placeholder="Nearby famous location" 
+                    <Input
+                      id="landmark"
+                      {...register("landmark")}
+                      placeholder="Nearby famous location"
                     />
                     <p className="text-sm text-muted-foreground">
                       Helps our delivery partner locate your address easily
@@ -472,24 +558,35 @@ export default function CheckoutPage() {
                   <CardDescription>Choose how you want to pay</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div 
+                  <div
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      paymentMethod === "online" 
-                        ? "border-primary bg-primary/5" 
+                      paymentMethod === "online"
+                        ? "border-primary bg-primary/5"
                         : "border-muted hover:border-primary/30"
                     }`}
                     onClick={() => setPaymentMethod("online")}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${
-                        paymentMethod === "online" ? "border-primary bg-primary" : "border-muted-foreground"
-                      }`}>
-                        {paymentMethod === "online" && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      <div
+                        className={`h-5 w-5 rounded-full border flex items-center justify-center ${
+                          paymentMethod === "online"
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground"
+                        }`}
+                      >
+                        {paymentMethod === "online" && (
+                          <div className="h-2 w-2 rounded-full bg-white"></div>
+                        )}
                       </div>
-                      <Label htmlFor="online" className="flex-1 cursor-pointer font-normal">
+                      <Label
+                        htmlFor="online"
+                        className="flex-1 cursor-pointer font-normal"
+                      >
                         <div className="flex justify-between items-center">
                           <span>Online Payment (Full Amount)</span>
-                          <span className="text-green-600 text-sm">Free Shipping</span>
+                          <span className="text-green-600 text-sm">
+                            Free Shipping
+                          </span>
                         </div>
                       </Label>
                     </div>
@@ -498,55 +595,65 @@ export default function CheckoutPage() {
                     </p>
                   </div>
 
-                  <div 
+                  <div
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                      paymentMethod === "cod" 
-                        ? "border-primary bg-primary/5" 
+                      paymentMethod === "cod"
+                        ? "border-primary bg-primary/5"
                         : "border-muted hover:border-primary/30"
                     }`}
                     onClick={() => setPaymentMethod("cod")}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`h-5 w-5 rounded-full border flex items-center justify-center ${
-                        paymentMethod === "cod" ? "border-primary bg-primary" : "border-muted-foreground"
-                      }`}>
-                        {paymentMethod === "cod" && <div className="h-2 w-2 rounded-full bg-white"></div>}
+                      <div
+                        className={`h-5 w-5 rounded-full border flex items-center justify-center ${
+                          paymentMethod === "cod"
+                            ? "border-primary bg-primary"
+                            : "border-muted-foreground"
+                        }`}
+                      >
+                        {paymentMethod === "cod" && (
+                          <div className="h-2 w-2 rounded-full bg-white"></div>
+                        )}
                       </div>
-                      <Label htmlFor="cod" className="flex-1 cursor-pointer font-normal">
-  <div className="flex justify-between items-center">
-    <span>Cash on Delivery</span>
-    <div >
-    <span className="text-sm text-red-500">+ ₹100 Extra </span>
-    <Badge className="text-xs w-fit">Advance</Badge>
-    </div>
-  </div>
-</Label>
-
+                      <Label
+                        htmlFor="cod"
+                        className="flex-1 cursor-pointer font-normal"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span>Cash on Delivery</span>
+                          <div>
+                            <span className="text-sm text-red-500">
+                              + ₹100 Extra{" "}
+                            </span>
+                            <Badge className="text-xs w-fit">Advance</Badge>
+                          </div>
+                        </div>
+                      </Label>
                     </div>
-                  
-<p className="text-sm text-muted-foreground pl-8 mt-1">
-  An additional ₹100 COD charge will be added on top of your product amount.
-</p>
 
+                    <p className="text-sm text-muted-foreground pl-8 mt-1">
+                      An additional ₹100 COD charge will be added on top of your
+                      product amount.
+                    </p>
                   </div>
                 </CardContent>
               </Card>
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-  <div className="flex items-center gap-3">
-    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-    <p className="text-amber-800 text-sm">
-      Please review our{" "}
-      <Link 
-        href="/terms" 
-        className="font-medium underline hover:text-amber-700 transition-colors"
-        target="_blank"
-      >
-        return policy
-      </Link>{" "}
-      before completing your purchase.
-    </p>
-  </div>
-</div>
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                  <p className="text-amber-800 text-sm">
+                    Please review our{" "}
+                    <Link
+                      href="/terms"
+                      className="font-medium underline hover:text-amber-700 transition-colors"
+                      target="_blank"
+                    >
+                      return policy
+                    </Link>{" "}
+                    before completing your purchase.
+                  </p>
+                </div>
+              </div>
               <Button type="submit" className="w-full" size="lg">
                 Proceed to Payment
               </Button>
@@ -555,7 +662,6 @@ export default function CheckoutPage() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            
             <Card className="sticky top-4">
               <CardHeader>
                 <CardTitle>Order Summary</CardTitle>
@@ -564,7 +670,11 @@ export default function CheckoutPage() {
                 <div className="space-y-4 max-h-80 overflow-y-auto pr-2">
                   {cart.map((item) => (
                     <div key={item._id} className="flex gap-3">
-                      <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-lg" />
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="w-16 h-16 object-cover rounded-lg"
+                      />
                       <div className="flex-1">
                         <h3 className="font-medium text-sm">{item.name}</h3>
                         <p className="text-xs text-muted-foreground">
@@ -572,18 +682,24 @@ export default function CheckoutPage() {
                         </p>
                         <div className="flex gap-1 mt-1 flex-wrap">
                           {item.size && (
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Size: {item.size}</span>
+                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                              Size: {item.size}
+                            </span>
                           )}
                           {item.color && (
-                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">Color: {item.color}</span>
+                            <span className="text-xs bg-muted px-2 py-0.5 rounded-full">
+                              Color: {item.color}
+                            </span>
                           )}
                         </div>
-                        <p className="font-medium text-sm mt-1">₹{item.salesPrice * item.cartQty}</p>
+                        <p className="font-medium text-sm mt-1">
+                          ₹{item.salesPrice * item.cartQty}
+                        </p>
                       </div>
                     </div>
                   ))}
                 </div>
-                
+
                 <div className="space-y-3 pt-4 border-t">
                   <div className="flex justify-between">
                     <span>Subtotal</span>
@@ -593,13 +709,15 @@ export default function CheckoutPage() {
                     <span className="flex items-center gap-1">
                       {paymentMethod === "online" ? "Shipping" : "COD Charges"}
                     </span>
-                    <span>{shippingCharges === 0 ? "Free" : `₹${shippingCharges}`}</span>
+                    <span>
+                      {shippingCharges === 0 ? "Free" : `₹${shippingCharges}`}
+                    </span>
                   </div>
                   <div className="flex justify-between font-bold text-lg pt-2">
                     <span>Total</span>
                     <span>₹{total}</span>
                   </div>
-                  
+
                   <div className="flex items-start gap-2 pt-3 text-sm text-muted-foreground">
                     <Truck className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <span>{deliveryTime}</span>
@@ -607,24 +725,23 @@ export default function CheckoutPage() {
                 </div>
               </CardContent>
             </Card>
-            
           </div>
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
-  <div className="flex items-center gap-3">
-    <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
-    <p className="text-amber-800 text-sm">
-      Please review our{" "}
-      <Link 
-        href="/terms" 
-        className="font-medium underline hover:text-amber-700 transition-colors"
-        target="_blank"
-      >
-        return policy
-      </Link>{" "}
-      before completing your purchase.
-    </p>
-  </div>
-</div>
+            <div className="flex items-center gap-3">
+              <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0" />
+              <p className="text-amber-800 text-sm">
+                Please review our{" "}
+                <Link
+                  href="/terms"
+                  className="font-medium underline hover:text-amber-700 transition-colors"
+                  target="_blank"
+                >
+                  return policy
+                </Link>{" "}
+                before completing your purchase.
+              </p>
+            </div>
+          </div>
         </div>
       )}
     </div>

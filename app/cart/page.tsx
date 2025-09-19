@@ -205,6 +205,14 @@ function CartPage() {
   </p>
 )}
 
+{/* ✅ show color only if it exists */}
+{item.color && (
+  <p className="text-xs text-gray-500 mt-1">
+    Colour: {item.color}
+  </p>
+)}
+
+
                         <div className="flex items-center justify-between mt-4">
                           <div className="flex items-center gap-2">
                             <Button
