@@ -116,7 +116,7 @@ export default function AboutUsSection() {
     { icon: <Users />, value: 6246, label: "Instagram Followers", suffix: "+" },
     {
       icon: <TrendingUp />,
-      value: 1200,
+      value: 17423,
       label: "Happy Customers",
       suffix: "+",
     },
