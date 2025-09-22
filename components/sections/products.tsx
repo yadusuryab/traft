@@ -7,14 +7,14 @@ import { Product } from "@/lib/queries/product";
 import Link from "next/link";
 import { buttonVariants } from "../ui/button";
 import { ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Props = {
   products: Product[];
   title?: string;
-  desc?:string;
+  desc?: string;
   showViewAll?: boolean;
   deskCols?: number;
- 
 };
 
 function ProductsSection({
@@ -22,7 +22,6 @@ function ProductsSection({
   title = "Explore",
   desc = "",
   showViewAll = false,
- 
   deskCols = 4
 }: Props) {
   const [loading, setLoading] = useState(true);
@@ -33,24 +32,22 @@ function ProductsSection({
   }, []);
 
   return (
-    <div className="py-6 ">
+    <div className="py-6">
       <div className="flex justify-between items-center mb-4">
         <div>
-        <h2 className="text-xl uppercase ">{title}</h2>
-        <p className="text-muted-foreground text-sm">
-        {desc}
-            </p>
+          <h2 className="text-xl uppercase">{title}</h2>
+          <p className="text-muted-foreground text-sm">
+            {desc}
+          </p>
         </div>
-        {showViewAll && (
-          <Link href="/products"className={buttonVariants({variant:'secondary'})}>
-            View All <ArrowRight/>
-          </Link>
-        )}
       </div>
 
-      <div className={`grid grid-cols-2 md:grid-cols-${deskCols} gap-2 md:gap-4`}>
+      <div className={cn(
+        "grid gap-2 md:gap-4 mb-6",
+        `grid-cols-2 md:grid-cols-${deskCols}`
+      )}>
         {loading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+          Array.from({ length: 6 }).map((_, i) => (
             <ProductCardSkeleton key={i} />
           ))
         ) : products.length === 0 ? (
@@ -71,6 +68,20 @@ function ProductsSection({
           ))
         )}
       </div>
+
+      {showViewAll && (
+        <div className="flex justify-center">
+          <Link 
+            href="/products" 
+            className={cn(
+              buttonVariants({ variant: 'default' }),
+              "flex items-center gap-2"
+            )}
+          >
+            View All <ArrowRight className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

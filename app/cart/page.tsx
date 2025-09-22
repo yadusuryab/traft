@@ -299,7 +299,7 @@ function CartPage() {
                 </div> */}
                 <Link href="/checkout" className="w-full">
                   <Button className="w-full" size="lg">
-                    Checkout <ArrowRight className="w-4 h-4 ml-2" />
+                    Order now <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </Link>
                 <Link href="/products" className="w-full">

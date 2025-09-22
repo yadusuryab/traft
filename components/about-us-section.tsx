@@ -91,24 +91,24 @@ export default function AboutUsSection() {
         "Cash on Delivery across India — order without worry and pay when the parcel arrives.",
       position: "left",
     },
-    {
-      title: "Fast Shipping",
-      description:
-        "We pack carefully and ship quickly from Tirur / Malappuram — local trust, nationwide reach.",
-      position: "right",
-    },
-    {
-      title: "Easy Returns",
-      description:
-        "Simple after-sales support and exchange options for peace of mind.",
-      position: "right",
-    },
-    {
-      title: "DM & WhatsApp Orders",
-      description:
-        "Order via Instagram DM or WhatsApp. Quick replies, confident checkout.",
-      position: "right",
-    },
+    // {
+    //   title: "Fast Shipping",
+    //   description:
+    //     "We pack carefully and ship quickly from Tirur / Malappuram — local trust, nationwide reach.",
+    //   position: "right",
+    // },
+    // {
+    //   title: "Easy Returns",
+    //   description:
+    //     "Simple after-sales support and exchange options for peace of mind.",
+    //   position: "right",
+    // },
+    // {
+    //   title: "DM & WhatsApp Orders",
+    //   description:
+    //     "Order via Instagram DM or WhatsApp. Quick replies, confident checkout.",
+    //   position: "right",
+    // },
   ];
 
   const stats = [
@@ -120,7 +120,7 @@ export default function AboutUsSection() {
       label: "Happy Customers",
       suffix: "+",
     },
-    { icon: <Calendar />, value: 15000, label: "Orders Shipped", suffix: "+" },
+    // { icon: <Calendar />, value: 15000, label: "Orders Shipped", suffix: "+" },
   ];
 
   return (
@@ -182,11 +182,11 @@ export default function AboutUsSection() {
           >
             DISCOVER OUR STORY
           </motion.span>
-          <h2 className="text-4xl md:text-5xl   mb-4 text-center">
-            About Us
+          <h2 className="text-2xl md:text-3xl   mb-4 text-center">
+            About traft.
           </h2>
           <motion.div
-            className="w-24 h-1 bg-primary"
+            className="w-24 h-1 bg-green-100"
             initial={{ width: 0 }}
             animate={{ width: 96 }}
             transition={{ duration: 1, delay: 0.5 }}
@@ -197,11 +197,7 @@ export default function AboutUsSection() {
           className="text-center max-w-2xl mx-auto mb-16 text-muted-forground/80  "
           variants={itemVariants}
         >
-          We’re a Kerala-based watch store from Tirur, Malappuram, trusted for
-          3+ years. TRAFT curates premium first-copy watches—Rolex, Omega, Rado,
-          G-Shock, Casio & more—at everyday prices. We quality-check every
-          piece, pack with care, and ship all-India with COD. Join 6k+ happy
-          shoppers who upgrade their wrist without overspending.
+          We’re TRAFT, a Tirur-based watch store trusted for 3+ years, offering premium first-copy brands like Rolex, Omega & Casio at everyday prices with all-India COD.
         </motion.p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
@@ -228,7 +224,7 @@ export default function AboutUsSection() {
               variants={itemVariants}
             >
               <motion.div
-                className="rounded-md overflow-hidden shadow-xl"
+                className=" rounded-3xl overflow-hidden shadow-3xl"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.8, delay: 0.3 }}
@@ -240,7 +236,7 @@ export default function AboutUsSection() {
                   className="w-full h-full object-cover"
                 />
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-t from-secondary/50 to-transparent flex items-end justify-center p-4"
+                  className="absolute inset-0 flex items-end justify-center p-4"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.8, delay: 0.9 }}
@@ -257,14 +253,14 @@ export default function AboutUsSection() {
                 </motion.div>
               </motion.div>
               <motion.div
-                className="absolute inset-0 border-4 border-[#A9BBC8] rounded-md -m-3 z-[-1]"
+                className="absolute inset-0  rounded-md -m-3 z-[-1]"
                 initial={{ opacity: 0, scale: 1.1 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.6 }}
               ></motion.div>
 
               {/* Floating accent elements */}
-              <motion.div
+              {/* <motion.div
                 className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-primary/10"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -279,7 +275,7 @@ export default function AboutUsSection() {
                 style={{ y: y2 }}
               ></motion.div>
 
-              {/* Additional decorative elements */}
+            
               <motion.div
                 className="absolute -top-10 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary"
                 animate={{
@@ -304,7 +300,7 @@ export default function AboutUsSection() {
                   ease: "easeInOut",
                   delay: 0.5,
                 }}
-              ></motion.div>
+              ></motion.div> */}
             </motion.div>
           </div>
 

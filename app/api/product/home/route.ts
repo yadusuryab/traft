@@ -9,13 +9,13 @@ export async function GET(req: NextRequest) {
   const start = (page - 1) * limit
 
   try {
-    let query = ''
     let products = []
 
     if (home === 'true') {
-      // Try fetching featured products
-      query = `
-        *[_type == "product" && featured == true] | order(_createdAt desc)[0...4]{
+      // Fetch up to 6 featured
+      const featuredQuery = `
+        *[_type == "product" && featured == true] 
+        | order(_createdAt desc)[0...6]{
           _id,
           name,
           rating,
@@ -25,12 +25,13 @@ export async function GET(req: NextRequest) {
           featured
         }
       `
-      products = await sanityClient.fetch(query)
+      const featured = await sanityClient.fetch(featuredQuery)
 
-      // If no featured products, fetch normal products
-      if (!products.length) {
-        query = `
-          *[_type == "product"] | order(_createdAt desc)[0...4]{
+      if (featured.length < 6) {
+        // Fetch normal products excluding already picked featured
+        const normalQuery = `
+          *[_type == "product" && !(featured == true)] 
+          | order(_createdAt desc)[0...${6 - featured.length}]{
             _id,
             name,
             rating,
@@ -40,12 +41,16 @@ export async function GET(req: NextRequest) {
             featured
           }
         `
-        products = await sanityClient.fetch(query)
+        const normal = await sanityClient.fetch(normalQuery)
+        products = [...featured, ...normal]
+      } else {
+        products = featured
       }
     } else {
-      // Paginated featured products
-      query = `
-        *[_type == "product" && featured == true] | order(_createdAt desc)[${start}...${start + limit}]{
+      // Paginated products (prioritize featured first)
+      const paginatedQuery = `
+        *[_type == "product"] 
+        | order(featured desc, _createdAt desc)[${start}...${start + limit}]{
           _id,
           name,
           "images": images[].asset->url,
@@ -60,32 +65,14 @@ export async function GET(req: NextRequest) {
           "category": category->title
         }
       `
-      products = await sanityClient.fetch(query)
-
-      // If no featured, fallback to normal paginated products
-      if (!products.length) {
-        query = `
-          *[_type == "product"] | order(_createdAt desc)[${start}...${start + limit}]{
-            _id,
-            name,
-            "images": images[].asset->url,
-            price, 
-            rating,
-            salesPrice,
-            sizes,
-            colours,
-            features,
-            description,
-            featured,
-            "category": category->title
-          }
-        `
-        products = await sanityClient.fetch(query)
-      }
+      products = await sanityClient.fetch(paginatedQuery)
     }
 
     return NextResponse.json({ success: true, data: products })
   } catch (error) {
-    return NextResponse.json({ success: false, message: 'Fetch failed', error }, { status: 500 })
+    return NextResponse.json(
+      { success: false, message: 'Fetch failed', error },
+      { status: 500 }
+    )
   }
 }
