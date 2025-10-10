@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import AddToCartButton from "@/components/utils/add-to-cart";
-import { Check, X } from "lucide-react";
+import { Check, X, ShoppingCart, Zap } from "lucide-react";
 
 type Props = {
   product: {
@@ -24,6 +24,7 @@ const ProductBuySection = ({ product }: Props) => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [isInCart, setIsInCart] = useState(false);
+  const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
 
   // Check if product with size/color is already in cart
   useEffect(() => {
@@ -66,6 +67,70 @@ const ProductBuySection = ({ product }: Props) => {
   const clearSelection = () => {
     setSelectedSize(null);
     setSelectedColor(null);
+  };
+
+  const handleBuyNow = () => {
+    // Validate selections
+    if (product.sizes?.length > 0 && !selectedSize) {
+      alert("Please select a size before buying now.");
+      return;
+    }
+    
+    if (product.colors?.length > 0 && !selectedColor) {
+      alert("Please select a color before buying now.");
+      return;
+    }
+    
+    if (product.quantity <= 0) {
+      alert("This product is out of stock.");
+      return;
+    }
+
+    setIsBuyNowLoading(true);
+
+    try {
+      const cartItems: any[] = JSON.parse(localStorage.getItem("cart") || "[]");
+
+      const existingIndex = cartItems.findIndex(
+        (item) =>
+          item._id === product._id &&
+          item.size === selectedSize &&
+          item.color === selectedColor
+      );
+
+      if (existingIndex >= 0) {
+        // Check if we can add more of this item
+        if (cartItems[existingIndex].cartQty >= cartItems[existingIndex].maxQty) {
+          alert(`Maximum quantity (${cartItems[existingIndex].maxQty}) reached for this item.`);
+          return;
+        }
+        
+        cartItems[existingIndex].cartQty += 1;
+      } else {
+        const newProduct = {
+          ...product,
+          image: product.image || product.images?.[0]?.url || "",
+          size: product.sizes?.length > 0 ? selectedSize : null,
+          color: product.colors?.length > 0 ? selectedColor : null,
+          cartQty: 1,
+          maxQty: product.quantity,
+        };
+
+        cartItems.push(newProduct);
+      }
+
+      localStorage.setItem("cart", JSON.stringify(cartItems));
+      setIsInCart(true);
+      window.dispatchEvent(new Event("cart-updated"));
+      
+      // Redirect to cart page
+      window.location.href = "/cart";
+    } catch (error) {
+      alert("Failed to add product to cart.");
+      console.error("Buy now error:", error);
+    } finally {
+      setIsBuyNowLoading(false);
+    }
   };
 
   return (
@@ -176,14 +241,37 @@ const ProductBuySection = ({ product }: Props) => {
         </div>
       )}
 
-      {/* Add to cart */}
-      <div className="pt-2">
+      {/* Action Buttons */}
+      <div className="pt-2 space-y-3">
+        {/* Buy Now Button - Always shown */}
+        <Button
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-3"
+          onClick={handleBuyNow}
+          disabled={isBuyNowLoading || product.quantity <= 0}
+          size="lg"
+        >
+          {isBuyNowLoading ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Processing...
+            </>
+          ) : (
+            <>
+              <Zap className="h-5 w-5" />
+              Buy Now
+            </>
+          )}
+        </Button>
+
+        {/* Add to Cart Button */}
         <AddToCartButton
           product={product}
           selectedSize={selectedSize}
           selectedColor={selectedColor}
           hasSizes={product.sizes?.length > 0}
           hasColors={product.colors?.length > 0}
+          className="py-3"
+          variant="default"
         />
         
         {isInCart && (
@@ -195,14 +283,26 @@ const ProductBuySection = ({ product }: Props) => {
       </div>
 
       {/* Help Text */}
-      <div className="text-xs text-muted-foreground">
+      <div className="text-xs text-muted-foreground space-y-1">
         {product.sizes?.length > 0 && product.colors?.length > 0 ? (
-          <p>Please select both size and color before adding to cart</p>
+          <p>Please select both size and color before purchasing</p>
         ) : product.sizes?.length > 0 ? (
-          <p>Please select a size before adding to cart</p>
+          <p>Please select a size before purchasing</p>
         ) : product.colors?.length > 0 ? (
-          <p>Please select a color before adding to cart</p>
+          <p>Please select a color before purchasing</p>
         ) : null}
+        
+        {/* Buy Now explanation */}
+        <p className="text-green-600 font-medium">
+          <Zap className="h-3 w-3 inline mr-1" />
+          <strong>Buy Now:</strong> Add to cart and proceed to checkout immediately
+        </p>
+        
+        {/* Add to Cart explanation */}
+        <p className="text-blue-600 font-medium">
+          <ShoppingCart className="h-3 w-3 inline mr-1" />
+          <strong>Add to Cart:</strong> Add to cart and continue shopping
+        </p>
       </div>
     </div>
   );

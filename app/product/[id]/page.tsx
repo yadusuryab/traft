@@ -46,9 +46,8 @@ export async function generateMetadata(
       title: product.name,
       description: product.description || `${product.name} available for purchase`,
       url: `${process.env.NEXT_PUBLIC_BASE_URL}/product/${id}`,
-      type: "website", // Changed from "product" to "website" which is allowed
+      type: "website",
       images: productImage ? [productImage, ...previousImages] : previousImages,
-      // Add product-specific data as additional properties
       ...(product.price && {
         'product:price:amount': product.salesPrice || product.price,
         'product:price:currency': 'INR',
@@ -71,7 +70,6 @@ export async function generateMetadata(
       title: product.name,
       description: product.description || `${product.name} available for purchase`,
       images: productImage ? [productImage] : [],
-      // Twitter specific product tags
       ...(product.price && {
         'twitter:label1': 'Price',
         'twitter:data1': `₹${product.salesPrice || product.price}`,
@@ -88,14 +86,13 @@ export async function generateMetadata(
 }
 
 const ProductPage = async ({ params }: Props) => {
-  const { id } =await params;
+  const { id } = await params;
   const product = await getProduct(id);
 
   if (!product) {
     return <p className="p-4 text-center text-red-600">Product not found.</p>;
   }
 
-  // Add structured data for rich snippets
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -126,7 +123,7 @@ const ProductPage = async ({ params }: Props) => {
       url: `${process.env.NEXT_PUBLIC_APP_NAME}/product/${id}`,
       priceCurrency: "INR",
       price: product.salesPrice || product.price,
-      priceValidUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().split('T')[0], // 30 days from now
+      priceValidUntil: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString().split('T')[0],
       itemCondition: "https://schema.org/NewCondition",
       availability: product.stock > 0 
         ? "https://schema.org/InStock" 
@@ -136,7 +133,6 @@ const ProductPage = async ({ params }: Props) => {
 
   return (
     <div className="min-h-screen pt-4">
-      {/* Add structured data to the page */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

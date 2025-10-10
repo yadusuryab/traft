@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { ShoppingCart, Check, Loader2 } from "lucide-react";
+import { ShoppingCart, Check, Loader2, Zap } from "lucide-react";
 
 export type CartItem = {
   _id: string;
@@ -28,7 +28,9 @@ type Props = {
   className?: string;
   hasSizes?: boolean;
   hasColors?: boolean;
-  disabled?: boolean; // Added disabled prop for out-of-stock scenarios
+  disabled?: boolean;
+  variant?: "default" | "secondary" | "destructive" | "outline" | "ghost" | "link";
+  showBuyNow?: boolean;
 };
 
 const AddToCartButton = ({
@@ -39,9 +41,12 @@ const AddToCartButton = ({
   hasSizes,
   hasColors,
   disabled = false,
+  variant = "default",
+  showBuyNow = false,
 }: Props) => {
   const [inCart, setInCart] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isBuyNowLoading, setIsBuyNowLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -55,24 +60,23 @@ const AddToCartButton = ({
     setInCart(exists);
   }, [product._id, selectedSize, selectedColor, hasSizes, hasColors]);
 
-  const handleAddToCart = () => {
+  const addToCart = (redirectToCart = false) => {
     if (hasSizes && !selectedSize) {
       toast.warning("Please select a size before adding to cart.");
-      return;
+      return false;
     }
     
     if (hasColors && !selectedColor) {
       toast.warning("Please select a color before adding to cart.");
-      return;
+      return false;
     }
     
-    // Check if product is out of stock
     if (product.quantity <= 0) {
       toast.error("This product is out of stock.");
-      return;
+      return false;
     }
 
-    setIsLoading(true);
+    redirectToCart ? setIsBuyNowLoading(true) : setIsLoading(true);
 
     try {
       const cartItems: CartItem[] = JSON.parse(localStorage.getItem("cart") || "[]");
@@ -85,14 +89,15 @@ const AddToCartButton = ({
       );
 
       if (existingIndex >= 0) {
-        // Check if we can add more of this item
         if (cartItems[existingIndex].cartQty >= cartItems[existingIndex].maxQty) {
           toast.error(`Maximum quantity (${cartItems[existingIndex].maxQty}) reached for this item.`);
-          return;
+          return false;
         }
         
         cartItems[existingIndex].cartQty += 1;
-        toast.success("Quantity increased in cart.");
+        if (!redirectToCart) {
+          toast.success("Quantity increased in cart.");
+        }
       } else {
         const newProduct: CartItem = {
           ...product,
@@ -104,37 +109,69 @@ const AddToCartButton = ({
         };
 
         cartItems.push(newProduct);
-        toast.success("Product added to cart!");
+        if (!redirectToCart) {
+          toast.success("Product added to cart!");
+        }
       }
 
       localStorage.setItem("cart", JSON.stringify(cartItems));
       setInCart(true);
       window.dispatchEvent(new Event("cart-updated"));
+      
+      return true;
     } catch (error) {
       toast.error("Failed to add product to cart.");
       console.error("Add to cart error:", error);
+      return false;
     } finally {
-      setIsLoading(false);
+      if (redirectToCart) {
+        setIsBuyNowLoading(false);
+      } else {
+        setIsLoading(false);
+      }
+    }
+  };
+
+  const handleAddToCart = () => {
+    addToCart(false);
+  };
+
+  const handleBuyNow = () => {
+    const success = addToCart(true);
+    if (success) {
+      router.push("/cart");
     }
   };
 
   // Handle out of stock scenario
   if (product.quantity <= 0) {
     return (
-      <Button
-        className={`w-full gap-2 ${className}`}
-        disabled={true}
-        variant="outline"
-      >
-        Out of Stock
-      </Button>
+      <div className={`flex gap-2 ${showBuyNow ? 'flex-col' : ''}`}>
+        <Button
+          className={`w-full gap-2 ${className}`}
+          disabled={true}
+          variant="outline"
+        >
+          Out of Stock
+        </Button>
+        {showBuyNow && (
+          <Button
+            className="w-full gap-2"
+            disabled={true}
+            variant="outline"
+          >
+            <Zap className="h-4 w-4" />
+            Buy Now
+          </Button>
+        )}
+      </div>
     );
   }
 
-  if (inCart) {
+  if (inCart && !showBuyNow) {
     return (
       <Button
-        variant="outline"
+        variant="secondary"
         className={`w-full gap-2 ${className}`}
         onClick={() => router.push("/cart")}
       >
@@ -145,23 +182,57 @@ const AddToCartButton = ({
   }
 
   return (
-    <Button
-      className={`w-full gap-2 ${className}`}
-      onClick={handleAddToCart}
-      disabled={isLoading || disabled}
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="h-4 w-4 animate-spin" />
-          Adding...
-        </>
+    <div className={`flex gap-2 ${showBuyNow ? 'flex-col' : ''}`}>
+      {inCart ? (
+        <Button
+          variant="secondary"
+          className={`w-full gap-2 ${className}`}
+          onClick={() => router.push("/cart")}
+        >
+          <Check className="h-4 w-4" />
+          View in Cart
+        </Button>
       ) : (
-        <>
-          <ShoppingCart className="h-4 w-4" />
-          Add to Cart
-        </>
+        <Button
+          variant={variant}
+          className={`w-full gap-2 ${className}`}
+          onClick={handleAddToCart}
+          disabled={isLoading || disabled}
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Adding...
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="h-4 w-4" />
+              Add to Cart
+            </>
+          )}
+        </Button>
       )}
-    </Button>
+      
+      {showBuyNow && (
+        <Button
+          className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+          onClick={handleBuyNow}
+          disabled={isBuyNowLoading || disabled}
+        >
+          {isBuyNowLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              <Zap className="h-4 w-4" />
+              Buy Now
+            </>
+          )}
+        </Button>
+      )}
+    </div>
   );
 };
 
