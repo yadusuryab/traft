@@ -34,8 +34,10 @@ export interface Order {
 }
 
 // lib/telegram.ts
-const TELEGRAM_BOT_TOKEN = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN;
-const TELEGRAM_CHAT_ID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID;
+const TELEGRAM_BOT_TOKEN_PREPAID = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN_PREPAID;
+const TELEGRAM_CHAT_ID_PREPAID = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID_PREPAID;
+const TELEGRAM_BOT_TOKEN_COD = process.env.NEXT_PUBLIC_TELEGRAM_BOT_TOKEN_COD;
+const TELEGRAM_CHAT_ID_COD = process.env.NEXT_PUBLIC_TELEGRAM_CHAT_ID_COD;
 
 interface TelegramMessageOptions {
   parse_mode?: 'Markdown' | 'HTML';
@@ -43,27 +45,44 @@ interface TelegramMessageOptions {
 }
 
 export class TelegramService {
-  private static validateConfig() {
-    if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-      throw new Error('Telegram credentials not configured');
+  private static getBotConfig(order: Order) {
+    const isPrepaid = order.paymentMode === 'online';
+    
+    if (isPrepaid) {
+      return {
+        token: TELEGRAM_BOT_TOKEN_PREPAID,
+        chatId: TELEGRAM_CHAT_ID_PREPAID,
+        type: 'PREPAID'
+      };
+    } else {
+      return {
+        token: TELEGRAM_BOT_TOKEN_COD,
+        chatId: TELEGRAM_CHAT_ID_COD,
+        type: 'COD'
+      };
     }
   }
 
+  private static validateConfig(botToken?: string, chatId?: string) {
+    if (!botToken || !chatId) {
+      throw new Error('Telegram credentials not configured');
+    }
+  }
 
   private static formatOrderMessage(order: Order): string {
     const paymentMethod = order.paymentMode === 'cod' 
       ? 'Cash on Delivery' 
       : `Online (${order.paymentStatus ? 'Paid' : 'Pending'})`;
 
-      const productsList = order.products
+    const productsList = order.products
       .map(
         (p) => 
           `➤ [${p.product.name}](${this.getProductUrl(p.product._id)}) \n   • Qty: ${p.quantity}${p.size ? ` • Size: ${p.size}` : ''}${p.color ? ` • Color: ${p.color}` : ''}`
       )
       .join('\n');
     
-const msg = `
-    *YOU HAVE A NEW ORDER*
+    const msg = `
+    *YOU HAVE A NEW ${order.paymentMode === 'online' ? 'PREPAID' : 'COD'} ORDER*
 🛍️ *ORDER #${order._id.slice(-6).toUpperCase()}* 🛍️
 📅 *Date:* ${new Date(order.orderedAt).toLocaleString()}
 
@@ -87,8 +106,8 @@ ${order.district}, ${order.state} - ${order.pincode}
 
 🚚 *Shipping Method:* Standard Delivery
     `.trim();
-    console.log(msg)
-    return  msg
+    
+    return msg;
   }
 
   private static getProductUrl(productId: string): string {
@@ -97,18 +116,20 @@ ${order.district}, ${order.state} - ${order.pincode}
 
   public static async sendMessage(
     text: string,
+    botToken: string,
+    chatId: string,
     options: TelegramMessageOptions = { parse_mode: 'Markdown' }
   ): Promise<boolean> {
     try {
-      this.validateConfig();
+      this.validateConfig(botToken, chatId);
 
       const response = await fetch(
-        `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
+        `https://api.telegram.org/bot${botToken}/sendMessage`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            chat_id: TELEGRAM_CHAT_ID,
+            chat_id: chatId,
             text,
             ...options,
           }),
@@ -127,18 +148,61 @@ ${order.district}, ${order.state} - ${order.pincode}
     }
   }
 
-  public static async sendOrderNotification(order: any): Promise<boolean> {
+  public static async sendOrderNotification(order: Order): Promise<boolean> {
     try {
-      this.validateConfig();
+      const botConfig :any = this.getBotConfig(order);
+      this.validateConfig(botConfig.token, botConfig.chatId);
        
       const message = this.formatOrderMessage(order);
-      return await this.sendMessage(message);
+      return await this.sendMessage(message, botConfig.token, botConfig.chatId);
     } catch (error) {
       console.error('Failed to send order notification:', error);
       return false;
     }
   }
+
+  // Optional: Send to both bots (useful for backup/notifications)
+  public static async sendOrderNotificationToBoth(order: Order): Promise<{
+    prepaid: boolean;
+    cod: boolean;
+  }> {
+    const results = {
+      prepaid: false,
+      cod: false
+    };
+
+    // Send to prepaid bot
+    if (TELEGRAM_BOT_TOKEN_PREPAID && TELEGRAM_CHAT_ID_PREPAID) {
+      try {
+        const message = this.formatOrderMessage(order);
+        results.prepaid = await this.sendMessage(
+          message, 
+          TELEGRAM_BOT_TOKEN_PREPAID, 
+          TELEGRAM_CHAT_ID_PREPAID
+        );
+      } catch (error) {
+        console.error('Failed to send to prepaid bot:', error);
+      }
+    }
+
+    // Send to COD bot
+    if (TELEGRAM_BOT_TOKEN_COD && TELEGRAM_CHAT_ID_COD) {
+      try {
+        const message = this.formatOrderMessage(order);
+        results.cod = await this.sendMessage(
+          message, 
+          TELEGRAM_BOT_TOKEN_COD, 
+          TELEGRAM_CHAT_ID_COD
+        );
+      } catch (error) {
+        console.error('Failed to send to COD bot:', error);
+      }
+    }
+
+    return results;
+  }
 }
 
 // Example usage:
-// await TelegramService.sendOrderNotification(order);
+// await TelegramService.sendOrderNotification(order); // Sends to appropriate bot based on payment method
+// await TelegramService.sendOrderNotificationToBoth(order); // Sends to both bots
