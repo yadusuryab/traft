@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const query = `*[_type == "banner" && isActive == true][0]{
+    const query = `*[_type == "banner" && isActive == true]{
       title,
       subtitle,
       "imageUrl": image.asset->url,
@@ -13,6 +13,7 @@ export async function GET() {
     }`;
 
     const banner = await sanityClient.fetch(query);
+    console.log(banner)
 
     return NextResponse.json(banner || {});
   } catch (error) {
