@@ -132,8 +132,8 @@ function Header() {
             Home
           </Link>
           <Link
-            href="/track-order"
-            className={buttonVariants({ variant: pathname === "/track-order" ? "default" : "ghost", size: "sm" })}
+            href="https://track.traft.in"
+            target="_blank"
           >
             Track Order
           </Link>
