@@ -28,7 +28,7 @@ function Header() {
 
   const navigationItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "Track Order", href: "/track-order", icon: Truck },
+    { name: "Track Order", href: "https://track.traft.in", icon: Truck },
     { name: "Cart", href: "/cart", icon: ShoppingBag },
     { name: "Return Policy", href: "/terms", icon: FileText },
   ];
