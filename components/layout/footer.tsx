@@ -1,10 +1,9 @@
 import React from "react";
 import Link from "next/link";
-import {
-  PhoneCall,
-} from "lucide-react";
+import { PhoneCall } from "lucide-react";
 import BrandIcon from "../utils/brand-icon";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
 function Footer() {
   const currentYear = new Date().getFullYear();
@@ -19,13 +18,25 @@ function Footer() {
             <BrandIcon />
           </div>
           <nav className="flex gap-6 flex-wrap justify-center text-muted-foreground">
-            <Link href="/terms" aria-label="Terms" className="hover:text-foreground hover:underline">
+            <Link
+              href="/terms"
+              aria-label="Terms"
+              className="hover:text-foreground hover:underline"
+            >
               Terms
             </Link>
-            <Link href="/privacy" aria-label="Privacy" className="hover:text-foreground hover:underline">
+            <Link
+              href="/privacy"
+              aria-label="Privacy"
+              className="hover:text-foreground hover:underline"
+            >
               Privacy
             </Link>
-            <Link href="/contact" aria-label="Contact" className="hover:text-foreground hover:underline">
+            <Link
+              href="/contact"
+              aria-label="Contact"
+              className="hover:text-foreground hover:underline"
+            >
               Contact
             </Link>
           </nav>
@@ -34,7 +45,10 @@ function Footer() {
         {/* Contact Section */}
         <div className="flex justify-center md:justify-end w-full md:w-auto">
           <Link href={`tel:${process.env.NEXT_PUBLIC_PHONE}`}>
-            <Button variant="link" className="text-primary font-bold text-lg flex items-center gap-2">
+            <Button
+              variant="link"
+              className="text-primary font-bold text-lg flex items-center gap-2"
+            >
               <PhoneCall /> {process.env.NEXT_PUBLIC_PHONE}
             </Button>
           </Link>
@@ -42,8 +56,21 @@ function Footer() {
       </div>
 
       {/* Bottom Section */}
-      <div className="flex justify-center md:justify-between py-5 px-5 md:px-28  text-muted-foreground text-sm">
-        <p>&copy; {currentYear}, {process.env.NEXT_PUBLIC_APP_NAME}.</p>
+      <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:justify-between py-5 px-5 md:px-28  text-muted-foreground text-sm">
+        <Link
+          href="https://instagram.com/getshopigo"
+          className="hover:text-foreground hover:underline "
+        >
+          <Image
+            src={"/shopigo.avif"}
+            width={80}
+            height={30}
+            alt={process.env.NEXT_PUBLIC_APP_NAME || "SHOPIGO"}
+          />
+        </Link>
+        <p>
+          &copy; {currentYear}, {process.env.NEXT_PUBLIC_APP_NAME}.
+        </p>
       </div>
     </footer>
   );
