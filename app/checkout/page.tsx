@@ -36,6 +36,14 @@ type CartItem = {
 
 type FormData = z.infer<typeof checkoutSchema>;
 
+type PendingOrderData = {
+  formData: FormData;
+  cart: CartItem[];
+  total: number;
+  paymentMethod: "online" | "cod";
+  timestamp: number;
+};
+
 export default function CheckoutPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [shippingCharges, setShippingCharges] = useState(0);
@@ -44,9 +52,9 @@ export default function CheckoutPage() {
   const [transactionId, setTransactionId] = useState("");
   const [qrCodeValue, setQrCodeValue] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">(
-    "online"
-  );
+  const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
+  const [formData, setFormData] = useState<FormData | null>(null);
+  const [isRestoring, setIsRestoring] = useState(true);
 
   const router = useRouter();
 
@@ -54,14 +62,85 @@ export default function CheckoutPage() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<FormData>({
     resolver: zodResolver(checkoutSchema),
   });
 
+  // Load cart and restore pending order on mount
   useEffect(() => {
-    const cartData = JSON.parse(localStorage.getItem("cart") || "[]");
-    setCart(cartData);
-  }, []);
+    const loadCart = () => {
+      const cartData = JSON.parse(localStorage.getItem("cart") || "[]");
+      setCart(cartData);
+      return cartData;
+    };
+
+    const restorePendingOrder = () => {
+      const pendingOrderStr = localStorage.getItem("pendingOrder");
+      if (pendingOrderStr) {
+        try {
+          const pendingOrder: PendingOrderData = JSON.parse(pendingOrderStr);
+          
+          // Check if order is older than 1 hour (optional: clear stale orders)
+          const oneHourAgo = Date.now() - 60 * 60 * 1000;
+          if (pendingOrder.timestamp < oneHourAgo) {
+            localStorage.removeItem("pendingOrder");
+            localStorage.removeItem("checkoutState");
+            return null;
+          }
+
+          // Restore form data
+          if (pendingOrder.formData) {
+            reset(pendingOrder.formData);
+            setFormData(pendingOrder.formData);
+          }
+
+          // Restore payment state
+          const checkoutStateStr = localStorage.getItem("checkoutState");
+          if (checkoutStateStr) {
+            const checkoutState = JSON.parse(checkoutStateStr);
+            setShowPayment(checkoutState.showPayment || false);
+            setPaymentMethod(checkoutState.paymentMethod || "online");
+            setTransactionId(checkoutState.transactionId || "");
+            
+            if (checkoutState.showPayment) {
+              const amount = checkoutState.paymentMethod === "online" 
+                ? pendingOrder.total 
+                : 100;
+              setQrCodeValue(generateUpiLink(amount));
+            }
+          }
+
+          return pendingOrder;
+        } catch (error) {
+          console.error("Error restoring pending order:", error);
+          clearCheckoutState();
+        }
+      }
+      return null;
+    };
+
+    loadCart();
+    restorePendingOrder();
+    setIsRestoring(false);
+  }, [reset]);
+
+  // Save checkout state to localStorage when it changes
+  useEffect(() => {
+    if (isRestoring) return;
+    
+    const saveCheckoutState = () => {
+      const checkoutState = {
+        showPayment,
+        paymentMethod,
+        transactionId,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("checkoutState", JSON.stringify(checkoutState));
+    };
+
+    saveCheckoutState();
+  }, [showPayment, paymentMethod, transactionId, isRestoring]);
 
   useEffect(() => {
     if (paymentMethod === "online") {
@@ -85,15 +164,27 @@ export default function CheckoutPage() {
     return `upi://pay?pa=${upiId}&pn=${process.env.NEXT_PUBLIC_APP_NAME}&am=${amount}&tn=${note}`;
   };
 
+  const clearCheckoutState = () => {
+    localStorage.removeItem("checkoutState");
+    localStorage.removeItem("pendingOrder");
+  };
+
   const handleOrder = async (data: FormData) => {
     const paymentAmount = paymentMethod === "online" ? total : 100;
 
     if (!showPayment) {
       setQrCodeValue(generateUpiLink(paymentAmount));
-      localStorage.setItem(
-        "pendingOrder",
-        JSON.stringify({ ...data, cart, total, paymentMethod })
-      );
+      
+      // Save form data and cart to localStorage
+      const pendingOrder: PendingOrderData = {
+        formData: data,
+        cart,
+        total,
+        paymentMethod,
+        timestamp: Date.now(),
+      };
+      localStorage.setItem("pendingOrder", JSON.stringify(pendingOrder));
+      
       setShowPayment(true);
       window.scrollTo(0, 0);
       return;
@@ -127,8 +218,11 @@ export default function CheckoutPage() {
       if (!response.ok) throw new Error("Failed to create order");
 
       const respdata = await response.json();
+      
+      // Clear all stored data on success
+      clearCheckoutState();
       localStorage.removeItem("cart");
-      localStorage.removeItem("pendingOrder");
+      
       router.push(`/order/${respdata.orderId}`);
     } catch (error) {
       toast.error("Failed to place order. Please try again.");
@@ -139,10 +233,33 @@ export default function CheckoutPage() {
   };
 
   const openUpiApp = () => {
+    // Save state before leaving the site
+    const checkoutState = {
+      showPayment: true,
+      paymentMethod,
+      transactionId,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem("checkoutState", JSON.stringify(checkoutState));
+    
+    // Open UPI app
     window.location.href = qrCodeValue;
   };
 
-  if (cart.length === 0) {
+  const handleBackToInfo = () => {
+    setShowPayment(false);
+  };
+
+  if (isRestoring) {
+    return (
+      <div className="max-w-2xl mx-auto p-4 text-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+        <p>Restoring your checkout session...</p>
+      </div>
+    );
+  }
+
+  if (cart.length === 0 && !formData) {
     return (
       <div className="max-w-2xl mx-auto p-4 text-center py-12">
         <h1 className="text-2xl font-bold mb-4">Your cart is empty</h1>
@@ -158,6 +275,19 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8">
+      {/* Add a recovery banner if returning from payment */}
+      {showPayment && localStorage.getItem("pendingOrder") && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-5 w-5 text-green-600" />
+            <div className="text-green-800 text-sm">
+              <p className="font-medium">Welcome back! Continue with your payment.</p>
+              <p>Your order details have been restored. Please enter the transaction ID from your payment app.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress Indicator */}
       <div className="flex items-center justify-center mb-8">
         <div className="flex items-center">
@@ -194,6 +324,7 @@ export default function CheckoutPage() {
         </div>
       </div>
 
+      {/* Return policy warning */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
         <div className="flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
@@ -216,6 +347,7 @@ export default function CheckoutPage() {
           </div>
         </div>
       </div>
+
       <h1 className="text-3xl font-bold text-center">Checkout</h1>
 
       {showPayment ? (
@@ -299,7 +431,7 @@ export default function CheckoutPage() {
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setShowPayment(false)}
+                  onClick={handleBackToInfo}
                   className="flex-1"
                   size="lg"
                 >
@@ -392,6 +524,7 @@ export default function CheckoutPage() {
           </Card>
         </div>
       ) : (
+        // ... rest of the form (same as before, but with proper state restoration)
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             <form onSubmit={handleSubmit(handleOrder)} className="space-y-6">
