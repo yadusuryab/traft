@@ -14,13 +14,29 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { checkoutSchema } from "@/lib/validations";
 import { QRCodeCanvas } from "qrcode.react";
-import { Loader2, InfoIcon, Truck, CreditCard, Scan } from "lucide-react";
+import {
+  Loader2,
+  InfoIcon,
+  Truck,
+  CreditCard,
+  Scan,
+  ExternalLink,
+  CheckCircle,
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 
@@ -55,6 +71,8 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"online" | "cod">("online");
   const [formData, setFormData] = useState<FormData | null>(null);
   const [isRestoring, setIsRestoring] = useState(true);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [hasCompletedPayment, setHasCompletedPayment] = useState(false);
 
   const router = useRouter();
 
@@ -242,12 +260,28 @@ export default function CheckoutPage() {
     };
     localStorage.setItem("checkoutState", JSON.stringify(checkoutState));
     
-    // Open UPI app
-    window.location.href = qrCodeValue;
+    // Show confirmation dialog
+    setShowPaymentDialog(true);
+  };
+
+  const handleConfirmOpenUpiApp = () => {
+    setShowPaymentDialog(false);
+    
+    // Open UPI app after a brief delay
+    setTimeout(() => {
+      window.location.href = qrCodeValue;
+    }, 300);
+    
+    toast.info("Opening UPI app... Please return here after payment to enter transaction ID.");
   };
 
   const handleBackToInfo = () => {
     setShowPayment(false);
+  };
+
+  const handlePaymentComplete = () => {
+    setHasCompletedPayment(true);
+    toast.success("Great! Now enter your transaction ID and click 'Confirm Payment & Place Order'");
   };
 
   if (isRestoring) {
@@ -275,6 +309,74 @@ export default function CheckoutPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-4 space-y-8">
+      {/* Payment Confirmation Dialog */}
+      <Dialog open={showPaymentDialog} onOpenChange={setShowPaymentDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ExternalLink className="h-5 w-5" />
+              Important: Please Read Before Proceeding
+            </DialogTitle>
+            <DialogDescription>
+              You're about to leave this page to complete your payment.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                <div className="text-amber-800 text-sm">
+                  <p className="font-medium mb-1">⚠️ Important Notice</p>
+                  <p>After completing payment in your UPI app:</p>
+                  <ol className="list-decimal pl-4 mt-2 space-y-1">
+                    <li>Return to this page (bookmark or keep it open)</li>
+                    <li>Enter the transaction ID shown in your payment app</li>
+                    <li>Click "Confirm Payment & Place Order" button</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <InfoIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div className="text-blue-800 text-sm">
+                  <p className="font-medium mb-1">💡 Pro Tip</p>
+                  <p>Keep this tab open or bookmark it. Your order will only be confirmed after you enter the transaction ID here.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <p className="font-medium text-lg">
+                Amount to Pay: ₹{paymentMethod === "online" ? total : 100}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">
+                {paymentMethod === "cod" ? "Advance payment for COD order" : "Full payment for your order"}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowPaymentDialog(false)}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmOpenUpiApp}
+              className="flex-1 bg-green-600 hover:bg-green-700"
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Open UPI App
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Add a recovery banner if returning from payment */}
       {showPayment && localStorage.getItem("pendingOrder") && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-4">
@@ -317,7 +419,9 @@ export default function CheckoutPage() {
         <div className="h-0.5 w-12 bg-muted mx-2"></div>
 
         <div className="flex items-center">
-          <div className="rounded-full h-8 w-8 flex items-center justify-center bg-muted">
+          <div className={`rounded-full h-8 w-8 flex items-center justify-center ${
+            transactionId && hasCompletedPayment ? "bg-green-500" : "bg-muted"
+          }`}>
             <span className="text-white text-sm">3</span>
           </div>
           <div className="ml-2 text-sm font-medium">Confirm</div>
@@ -367,6 +471,67 @@ export default function CheckoutPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
+              {/* Payment Instructions Card */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <InfoIcon className="h-5 w-5" />
+                    Payment Instructions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-800 rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                        1
+                      </div>
+                      <div>
+                        <p className="font-medium">Scan QR Code or Click "Open in UPI App"</p>
+                        <p className="text-sm text-muted-foreground">
+                          Complete the payment in your UPI app
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-800 rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                        2
+                      </div>
+                      <div>
+                        <p className="font-medium">Return to This Page</p>
+                        <p className="text-sm text-muted-foreground">
+                          Keep this tab open or bookmark it to return easily
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-800 rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                        3
+                      </div>
+                      <div>
+                        <p className="font-medium">Enter Transaction ID</p>
+                        <p className="text-sm text-muted-foreground">
+                          Copy the transaction ID from your payment app
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start gap-2">
+                      <div className="bg-blue-100 text-blue-800 rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold mt-0.5">
+                        4
+                      </div>
+                      <div>
+                        <p className="font-medium">Click Confirm</p>
+                        <p className="text-sm text-muted-foreground">
+                          Click "Confirm Payment & Place Order" to complete your order
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               <div className="bg-primary/5 p-4 rounded-lg">
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
                   <Scan className="h-4 w-4" />
@@ -402,21 +567,50 @@ export default function CheckoutPage() {
                       </p>
                     </div>
 
-                    <Button onClick={openUpiApp} className="w-full" size="lg">
+                    <Button 
+                      onClick={openUpiApp} 
+                      className="w-full" 
+                      size="lg"
+                      variant="default"
+                    >
+                      <ExternalLink className="mr-2 h-5 w-5" />
                       Open in UPI App
                     </Button>
+                    
+                    <div className="text-center">
+                      <Button
+                        variant="link"
+                        onClick={handlePaymentComplete}
+                        className="text-sm"
+                      >
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        I've completed the payment
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="space-y-3">
-                <Label htmlFor="transactionId" className="text-base">
-                  Transaction ID <span className="text-destructive">*</span>
-                </Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="transactionId" className="text-base">
+                    Transaction ID <span className="text-destructive">*</span>
+                  </Label>
+                  {transactionId && (
+                    <Badge variant="outline" className="text-green-600 border-green-200">
+                      ✓ Transaction ID entered
+                    </Badge>
+                  )}
+                </div>
                 <Input
                   id="transactionId"
                   value={transactionId}
-                  onChange={(e) => setTransactionId(e.target.value)}
+                  onChange={(e) => {
+                    setTransactionId(e.target.value);
+                    if (e.target.value.trim()) {
+                      setHasCompletedPayment(true);
+                    }
+                  }}
                   placeholder="Enter transaction ID from your payment app"
                   className="py-2 px-4"
                   required
@@ -424,9 +618,24 @@ export default function CheckoutPage() {
                 <p className="text-sm text-muted-foreground flex items-start gap-1">
                   <InfoIcon className="h-4 w-4 mt-0.5 flex-shrink-0" />
                   After completing payment, please enter the transaction ID
-                  provided by your payment app for verification.
+                  provided by your payment app for verification. Your order will not be confirmed until you enter this.
                 </p>
               </div>
+
+              {/* Payment Status Indicator */}
+              {hasCompletedPayment && transactionId && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-green-800">Ready to Confirm Order!</p>
+                      <p className="text-sm text-green-700">
+                        Transaction ID entered. Click the button below to complete your order.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
                 <Button
@@ -442,6 +651,7 @@ export default function CheckoutPage() {
                   disabled={!transactionId.trim() || isSubmitting}
                   className="flex-1"
                   size="lg"
+                  variant={hasCompletedPayment ? "default" : "secondary"}
                 >
                   {isSubmitting ? (
                     <>
@@ -449,9 +659,27 @@ export default function CheckoutPage() {
                       Processing...
                     </>
                   ) : (
-                    "Confirm Payment & Place Order"
+                    <>
+                      <CheckCircle className="mr-2 h-5 w-5" />
+                      Confirm Payment & Place Order
+                    </>
                   )}
                 </Button>
+              </div>
+
+              {/* Important Reminder */}
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-amber-800 text-sm">
+                    <p className="font-medium mb-1">⚠️ Don't Forget!</p>
+                    <p>
+                      Your order will only be confirmed after you enter the transaction ID 
+                      and click "Confirm Payment & Place Order". If you leave this page without 
+                      completing these steps, your payment may not be linked to your order.
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -524,6 +752,7 @@ export default function CheckoutPage() {
           </Card>
         </div>
       ) : (
+       
         // ... rest of the form (same as before, but with proper state restoration)
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
