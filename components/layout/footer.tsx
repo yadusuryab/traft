@@ -2,78 +2,73 @@ import React from "react";
 import Link from "next/link";
 import { PhoneCall } from "lucide-react";
 import BrandIcon from "../utils/brand-icon";
-import { Button } from "../ui/button";
-import Image from "next/image";
 
-function Footer() {
-  const currentYear = new Date().getFullYear();
+const NAV_LINKS = [
+  { href: "/terms",                           label: "Terms"       },
+  { href: "/privacy",                         label: "Privacy"     },
+  { href: "/contact",                         label: "Contact"     },
+  { href: "https://track.traft.in",           label: "Track Order", external: true },
+  { href: process.env.NEXT_PUBLIC_INSTA || "#", label: "Instagram", external: true },
+  {
+    href: `https://wa.me/${process.env.NEXT_PUBLIC_PHONE}`,
+    label: "WhatsApp",
+    external: true,
+  },
+];
+
+export default function Footer() {
+  const year = new Date().getFullYear();
 
   return (
-    <footer className="bg-background mt-10 w-full">
-      {/* Top Section */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between border-t pt-5 md:px-28 px-5 gap-6">
-        {/* Brand and Navigation Links */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-6 flex-wrap w-full md:w-auto justify-center md:justify-start">
-          <div className="flex items-center justify-center">
-            <BrandIcon />
-          </div>
-          <nav className="flex gap-6 flex-wrap justify-center text-muted-foreground">
-            <Link
-              href="/terms"
-              aria-label="Terms"
-              className="hover:text-foreground hover:underline"
-            >
-              Terms
-            </Link>
-            <Link
-              href="/privacy"
-              aria-label="Privacy"
-              className="hover:text-foreground hover:underline"
-            >
-              Privacy
-            </Link>
-            <Link
-              href="/contact"
-              aria-label="Contact"
-              className="hover:text-foreground hover:underline"
-            >
-              Contact
-            </Link>
+    <footer className="w-full mt-10 border-t border-zinc-100 bg-white">
+      <div className="max-w-7xl mx-auto px-5 md:px-10 py-5 flex flex-col gap-4">
+
+        {/* ── Row 1: brand + nav links ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+          <BrandIcon />
+          <span className="hidden sm:block w-px h-4 bg-zinc-200 shrink-0" />
+          <nav className="flex flex-wrap gap-x-4 gap-y-2">
+            {NAV_LINKS.map(({ href, label, external }) => (
+              <Link
+                key={label}
+                href={href}
+                target={external ? "_blank" : undefined}
+                rel={external ? "noreferrer" : undefined}
+                className="text-xs text-zinc-400 hover:text-zinc-800 transition-colors duration-150 whitespace-nowrap"
+              >
+                {label}
+              </Link>
+            ))}
           </nav>
         </div>
 
-        {/* Contact Section */}
-        <div className="flex justify-center md:justify-end w-full md:w-auto">
-          <Link href={`tel:${process.env.NEXT_PUBLIC_PHONE}`}>
-            <Button
-              variant="link"
-              className="text-primary font-bold text-lg flex items-center gap-2"
-            >
-              <PhoneCall /> {process.env.NEXT_PUBLIC_PHONE}
-            </Button>
-          </Link>
-        </div>
-      </div>
+        {/* ── Row 2: phone · copyright · crafted by ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-zinc-100">
 
-      {/* Bottom Section */}
-      <div className="flex flex-col md:flex-row items-center justify-center gap-3 md:justify-between py-5 px-5 md:px-28  text-muted-foreground text-sm">
-        <Link
-          href="https://instagram.com/getshopigo"
-          className="hover:text-foreground hover:underline "
-        >
-          <Image
-            src={"/shopigo.avif"}
-            width={80}
-            height={30}
-            alt={process.env.NEXT_PUBLIC_APP_NAME || "SHOPIGO"}
-          />
-        </Link>
-        <p>
-          &copy; {currentYear}, {process.env.NEXT_PUBLIC_APP_NAME}.
-        </p>
+          <Link
+            href={`tel:${process.env.NEXT_PUBLIC_PHONE}`}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-900 transition-colors duration-150"
+          >
+            <PhoneCall size={13} className="shrink-0" />
+            {process.env.NEXT_PUBLIC_PHONE}
+          </Link>
+
+          <p className="text-xs text-zinc-400">
+            &copy; {year} {process.env.NEXT_PUBLIC_APP_NAME}
+          </p>
+
+          <Link
+            href="https://instagram.com/getshopigo"
+            target="_blank"
+            rel="noreferrer"
+            className="text-xs text-zinc-400 hover:text-zinc-700 transition-colors duration-150 whitespace-nowrap"
+          >
+            crafted by{" "}
+            <span className="font-semibold text-zinc-600">shopigo</span>
+          </Link>
+
+        </div>
       </div>
     </footer>
   );
 }
-
-export default Footer;

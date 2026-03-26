@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type Banner = {
   id: string;
@@ -15,133 +16,244 @@ type Banner = {
   ctaLink?: string;
 };
 
-export default function Hero() {
-  const [banners, setBanners] = useState<Banner[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+/* ─── Skeleton shown while banners load ─── */
+function HeroSkeleton() {
+  return (
+    <div className="w-full h-[25vh] min-h-[200px] max-h-[250px] bg-muted animate-pulse rounded-none" />
+  );
+}
 
+export default function Hero() {
+  const [banners, setBanners]           = useState<Banner[]>([]);
+  const [loading, setLoading]           = useState(true);
+  const [current, setCurrent]           = useState(0);
+  const [prev,    setPrev]              = useState<number | null>(null);
+  const [dir,     setDir]               = useState<"left" | "right">("right");
+  const [animating, setAnimating]       = useState(false);
+  const [paused,  setPaused]            = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  /* ── Fetch ── */
   useEffect(() => {
-    const fetchBanners = async () => {
+    (async () => {
       try {
-        const res = await fetch("/api/banner");
+        const res  = await fetch("/api/banner");
         const data = await res.json();
-        // If data is a single banner, wrap it in an array
         setBanners(Array.isArray(data) ? data : [data]);
-      } catch (err) {
-        console.error("Error fetching banners:", err);
+      } catch (e) {
+        console.error("Error fetching banners:", e);
+      } finally {
+        setLoading(false);
       }
-    };
-    fetchBanners();
+    })();
   }, []);
 
-  // Auto-play functionality
+  /* ── Slide transition helper ── */
+  const slideTo = useCallback(
+    (next: number, direction: "left" | "right") => {
+      if (animating || next === current) return;
+      setDir(direction);
+      setPrev(current);
+      setCurrent(next);
+      setAnimating(true);
+      setTimeout(() => {
+        setPrev(null);
+        setAnimating(false);
+      }, 500);
+    },
+    [animating, current]
+  );
+
+  const goNext = useCallback(() => {
+    slideTo((current + 1) % banners.length, "right");
+  }, [current, banners.length, slideTo]);
+
+  const goPrev = useCallback(() => {
+    slideTo(current === 0 ? banners.length - 1 : current - 1, "left");
+  }, [current, banners.length, slideTo]);
+
+  /* ── Auto-play ── */
   useEffect(() => {
-    if (!isAutoPlaying || banners.length <= 1) return;
+    if (paused || banners.length <= 1) return;
+    timerRef.current = setInterval(goNext, 5000);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [paused, banners.length, goNext]);
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % banners.length);
-    }, 5000); // Change slide every 5 seconds
+  /* ── Progress bar width ── */
+  const [progress, setProgress] = useState(0);
+  useEffect(() => {
+    if (paused || banners.length <= 1) { setProgress(0); return; }
+    setProgress(0);
+    const start = performance.now();
+    const RAF_DURATION = 5000;
+    let raf: number;
+    const tick = (now: number) => {
+      const pct = Math.min(((now - start) / RAF_DURATION) * 100, 100);
+      setProgress(pct);
+      if (pct < 100) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [current, paused, banners.length]);
 
-    return () => clearInterval(interval);
-  }, [banners.length, isAutoPlaying]);
-
-  const goToSlide = (index: number) => {
-    setCurrentIndex(index);
-  };
-
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
-    setIsAutoPlaying(false);
-  };
-
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % banners.length);
-    setIsAutoPlaying(false);
-  };
-
+  if (loading) return <HeroSkeleton />;
   if (!banners.length) return null;
 
-  const currentBanner = banners[currentIndex];
+  const multi = banners.length > 1;
+
+  /* ── Slide animation classes ── */
+  const enterClass = dir === "right"
+    ? "animate-slide-in-right"
+    : "animate-slide-in-left";
+  const exitClass = dir === "right"
+    ? "animate-slide-out-left"
+    : "animate-slide-out-right";
 
   return (
-    <div 
-      className="w-full h-[25vh] min-h-[200px] max-h-[250px] relative overflow-hidden"
-      onMouseEnter={() => setIsAutoPlaying(false)}
-      onMouseLeave={() => setIsAutoPlaying(true)}
-    >
-      {/* Banner Image */}
-      {currentBanner.imageUrl && (
-        <Image
-          src={currentBanner.imageUrl}
-          alt={currentBanner.title || "Banner"}
-          fill
-          sizes="100vw"
-          priority
-          className="object-cover transition-opacity duration-500"
-        />
-      )}
+    <>
+      {/* Keyframes injected once */}
+      <style>{`
+        @keyframes slide-in-right  { from { transform: translateX(6%);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slide-in-left   { from { transform: translateX(-6%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slide-out-left  { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-6%); opacity: 0; } }
+        @keyframes slide-out-right { from { transform: translateX(0); opacity: 1; } to { transform: translateX(6%);  opacity: 0; } }
+        @keyframes hero-content-up { from { transform: translateY(14px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-in-right  { animation: slide-in-right  0.5s cubic-bezier(.4,0,.2,1) forwards; }
+        .animate-slide-in-left   { animation: slide-in-left   0.5s cubic-bezier(.4,0,.2,1) forwards; }
+        .animate-slide-out-left  { animation: slide-out-left  0.5s cubic-bezier(.4,0,.2,1) forwards; }
+        .animate-slide-out-right { animation: slide-out-right 0.5s cubic-bezier(.4,0,.2,1) forwards; }
+        .animate-hero-content    { animation: hero-content-up 0.55s 0.15s cubic-bezier(.4,0,.2,1) both; }
+      `}</style>
 
-      {/* Gradient Overlay */}
+      <div
+        className="relative w-full h-[25vh] min-h-[200px] rounded max-h-[250px] overflow-hidden bg-muted select-none"
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+      >
+        {/* ── Slides ── */}
+        {banners.map((banner, i) => {
+          const isCurrent = i === current;
+          const isPrev    = i === prev;
+          if (!isCurrent && !isPrev) return null;
 
-      {/* Banner Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center text-white px-4">
-        {currentBanner.title && (
-          <h2 className="text-lg font-bold drop-shadow-md">{currentBanner.title}</h2>
+          return (
+            <div
+              key={banner.id}
+              className={cn(
+                "absolute inset-0",
+                isCurrent && animating && enterClass,
+                isPrev    && animating && exitClass,
+                isCurrent && !animating && "opacity-100",
+                isPrev    && !animating && "opacity-0 pointer-events-none"
+              )}
+            >
+              {/* Image */}
+              {banner.imageUrl ? (
+                <Image
+                  src={banner.imageUrl}
+                  alt={banner.title || "Banner"}
+                  fill
+                  sizes="100vw"
+                  priority={i === 0}
+                  className="object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/40" />
+              )}
+
+              {/* Gradient overlay — bottom-heavy for text legibility */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+
+              {/* Content — only animate on current visible slide */}
+              {isCurrent && (
+                <div className="absolute inset-0 flex flex-col items-center justify-end pb-12 px-6 text-center animate-hero-content">
+                  {banner.title && (
+                    <h2 className="text-white text-xl sm:text-2xl md:text-3xl font-bold drop-shadow-lg leading-tight max-w-2xl">
+                      {banner.title}
+                    </h2>
+                  )}
+                  {banner.subtitle && (
+                    <p className="text-white/85 text-sm sm:text-base mt-2 drop-shadow max-w-xl leading-relaxed">
+                      {banner.subtitle}
+                    </p>
+                  )}
+                  {banner.ctaText && banner.ctaLink && (
+                    <Button
+                      size="sm"
+                      className="mt-4 rounded-full px-6 h-9 text-sm font-semibold shadow-lg hover:scale-105 active:scale-95 transition-transform duration-200"
+                      asChild
+                    >
+                      <Link href={banner.ctaLink}>
+                        {banner.ctaText}
+                        <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* ── Prev / Next arrows ── */}
+        {multi && (
+          <>
+            <button
+              onClick={() => { goPrev(); setPaused(false); }}
+              aria-label="Previous"
+              className={cn(
+                "absolute left-3 top-1/2 -translate-y-1/2 z-10",
+                "flex items-center justify-center w-8 h-8 rounded-full",
+                "bg-black/30 hover:bg-black/55 text-white backdrop-blur-sm",
+                "transition-all duration-200 hover:scale-110 active:scale-95"
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => { goNext(); setPaused(false); }}
+              aria-label="Next"
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 z-10",
+                "flex items-center justify-center w-8 h-8 rounded-full",
+                "bg-black/30 hover:bg-black/55 text-white backdrop-blur-sm",
+                "transition-all duration-200 hover:scale-110 active:scale-95"
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
         )}
-        {currentBanner.subtitle && (
-          <p className="text-sm mt-1 drop-shadow-md">{currentBanner.subtitle}</p>
+
+        {/* ── Dot indicators ── */}
+        {multi && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5">
+            {banners.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => { slideTo(i, i > current ? "right" : "left"); setPaused(false); }}
+                aria-label={`Go to slide ${i + 1}`}
+                className={cn(
+                  "rounded-full transition-all duration-300",
+                  i === current
+                    ? "bg-white w-5 h-1.5"
+                    : "bg-white/45 hover:bg-white/70 w-1.5 h-1.5"
+                )}
+              />
+            ))}
+          </div>
         )}
-        {currentBanner.ctaText && currentBanner.ctaLink && (
-          <Button
-            size="sm"
-            className="mt-2 bg-primary text-white hover:bg-primary/90 px-4 py-2 text-sm"
-            asChild
-          >
-            <Link href={currentBanner.ctaLink}>
-              {currentBanner.ctaText}
-              <ArrowRight className="ml-1 h-4 w-4" />
-            </Link>
-          </Button>
+
+        {/* ── Progress bar (auto-play progress) ── */}
+        {multi && !paused && (
+          <div className="absolute bottom-0 inset-x-0 h-[2px] bg-white/15 z-10 overflow-hidden">
+            <div
+              className="h-full bg-white/60 transition-none rounded-r-full"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
         )}
       </div>
-
-      {/* Navigation Arrows - Only show if multiple banners */}
-      {banners.length > 1 && (
-        <>
-          <button
-            onClick={goToPrevious}
-            className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all duration-200"
-            aria-label="Previous banner"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={goToNext}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white p-2 rounded-full transition-all duration-200"
-            aria-label="Next banner"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </>
-      )}
-
-      {/* Dots Indicator - Only show if multiple banners */}
-      {banners.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => goToSlide(index)}
-              className={`w-3 h-1 rounded-full transition-all duration-200 ${
-                index === currentIndex
-                  ? "bg-white scale-125"
-                  : "bg-white/50 hover:bg-white/70"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }

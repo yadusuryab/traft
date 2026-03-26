@@ -1,24 +1,15 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useEffect, useRef } from "react";
 import {
-  Pen,
-  PaintBucket,
-  Home,
-  Ruler,
-  PenTool,
-  Building2,
   Award,
   Users,
-  Calendar,
-  CheckCircle,
-  Sparkles,
-  Star,
-  ArrowRight,
-  Zap,
   TrendingUp,
+  ArrowRight,
+  ShieldCheck,
+  PackageCheck,
+  Banknote,
 } from "lucide-react";
 import {
   motion,
@@ -26,481 +17,372 @@ import {
   useTransform,
   useInView,
   useSpring,
+  MotionValue,
 } from "framer-motion";
 import ss from "@/public/ss.png";
 import Link from "next/link";
 
-export default function AboutUsSection() {
-  const [isVisible, setIsVisible] = useState(false);
-  const sectionRef = useRef<HTMLDivElement>(null);
-  const statsRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(sectionRef, { once: false, amount: 0.1 });
-  const isStatsInView = useInView(statsRef, { once: false, amount: 0.3 });
+/* ─────────────────────────────────────────
+   Data
+───────────────────────────────────────── */
+const services = [
+  {
+    icon: ShieldCheck,
+    title: "Premium First-Copy",
+    description:
+      "Hand-picked watches that look like the originals — clean finishes, solid feel, high value for the price.",
+  },
+  {
+    icon: PackageCheck,
+    title: "Quality-Checked",
+    description:
+      "Every piece gets a thorough quality check before packing — no nonsense, just reliable looks.",
+  },
+  {
+    icon: Banknote,
+    title: "COD Available",
+    description:
+      "Cash on Delivery across India — order without worry and pay when the parcel arrives.",
+  },
+];
 
-  // Parallax effect for decorative elements
+const stats = [
+  { icon: Award,      value: 3,     label: "Years in Market",      suffix: "+" },
+  { icon: Users,      value: 6246,  label: "Instagram Followers",  suffix: "+" },
+  { icon: TrendingUp, value: 17423, label: "Happy Customers",      suffix: "+" },
+];
+
+/* ─────────────────────────────────────────
+   Animation variants
+───────────────────────────────────────── */
+const fadeUp :any= {
+  hidden:  { opacity: 0, y: 24 },
+  visible: (delay = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1], delay },
+  }),
+};
+
+const stagger = {
+  hidden:  {},
+  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
+
+/* ─────────────────────────────────────────
+   Main component
+───────────────────────────────────────── */
+export default function AboutUsSection() {
+  const sectionRef  = useRef<HTMLDivElement>(null);
+  const statsRef    = useRef<HTMLDivElement>(null);
+  const isInView    = useInView(sectionRef, { once: true, amount: 0.08 });
+  const isStatsView = useInView(statsRef,   { once: true, amount: 0.2  });
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"],
   });
 
-  const y1 = useTransform(scrollYProgress, [0, 1], [0, -50]);
-  const y2 = useTransform(scrollYProgress, [0, 1], [0, 50]);
-  const rotate1 = useTransform(scrollYProgress, [0, 1], [0, 20]);
-  const rotate2 = useTransform(scrollYProgress, [0, 1], [0, -20]);
-
-  useEffect(() => {
-    setIsVisible(true);
-  }, []);
-
-  const containerVariants: any = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3,
-      },
-    },
-  };
-
-  const itemVariants: any = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.6, ease: "easeOut" },
-    },
-  };
-
-  const services = [
-    {
-      title: "Premium First-Copy",
-      description:
-        "Hand-picked watches that look like the originals — clean finishes, solid feel, high value for the price.",
-      position: "left",
-    },
-    {
-      title: "Quality-Checked",
-      description:
-        "Every piece gets a quick quality check before packing — no nonsense, just reliable looks.",
-      position: "left",
-    },
-    {
-      title: "COD Available",
-      description:
-        "Cash on Delivery across India — order without worry and pay when the parcel arrives.",
-      position: "left",
-    },
-    // {
-    //   title: "Fast Shipping",
-    //   description:
-    //     "We pack carefully and ship quickly from Tirur / Malappuram — local trust, nationwide reach.",
-    //   position: "right",
-    // },
-    // {
-    //   title: "Easy Returns",
-    //   description:
-    //     "Simple after-sales support and exchange options for peace of mind.",
-    //   position: "right",
-    // },
-    // {
-    //   title: "DM & WhatsApp Orders",
-    //   description:
-    //     "Order via Instagram DM or WhatsApp. Quick replies, confident checkout.",
-    //   position: "right",
-    // },
-  ];
-
-  const stats = [
-    { icon: <Award />, value: 3, label: "Years in Market", suffix: "+" },
-    { icon: <Users />, value: 6246, label: "Instagram Followers", suffix: "+" },
-    {
-      icon: <TrendingUp />,
-      value: 17423,
-      label: "Happy Customers",
-      suffix: "+",
-    },
-    // { icon: <Calendar />, value: 15000, label: "Orders Shipped", suffix: "+" },
-  ];
+  const blobY1 = useTransform(scrollYProgress, [0, 1], [0, -40]);
+  const blobY2 = useTransform(scrollYProgress, [0, 1], [0,  40]);
 
   return (
     <section
       id="about-section"
       ref={sectionRef}
-      className="w-full py-24   overflow-hidden relative"
+      className="relative w-full py-24 overflow-hidden"
     >
-      {/* Decorative background elements */}
+      {/* ── Ambient blobs ── */}
       <motion.div
-        className="absolute top-20 left-10 w-64 h-64 rounded-full bg-primary/5 blur-3xl"
-        style={{ y: y1, rotate: rotate1 }}
+        style={{ y: blobY1 }}
+        className="pointer-events-none absolute top-16 -left-20 w-72 h-72 rounded-full bg-primary/6 blur-[80px]"
       />
       <motion.div
-        className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-[#A9BBC8]/5 blur-3xl"
-        style={{ y: y2, rotate: rotate2 }}
-      />
-      <motion.div
-        className="absolute top-1/2 left-1/4 w-4 h-4 rounded-full bg-primary/30"
-        animate={{
-          y: [0, -15, 0],
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-        }}
-      />
-      <motion.div
-        className="absolute bottom-1/3 right-1/4 w-6 h-6 rounded-full bg-[#A9BBC8]/30"
-        animate={{
-          y: [0, 20, 0],
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{
-          duration: 4,
-          repeat: Number.POSITIVE_INFINITY,
-          ease: "easeInOut",
-          delay: 1,
-        }}
+        style={{ y: blobY2 }}
+        className="pointer-events-none absolute bottom-16 -right-20 w-96 h-96 rounded-full bg-primary/4 blur-[100px]"
       />
 
-      <motion.div
-        className="container mx-auto max-w-6xl relative z-10"
-        initial="hidden"
-        animate={isInView ? "visible" : "hidden"}
-        variants={containerVariants}
-      >
+      {/* Floating dots */}
+      {[
+        { top: "30%", left: "18%", size: 5,  dur: 3,   delay: 0   },
+        { top: "65%", right: "22%", size: 7, dur: 4,   delay: 1.2 },
+        { top: "15%", right: "35%", size: 4, dur: 3.5, delay: 0.6 },
+      ].map((dot, i) => (
+        <motion.span
+          key={i}
+          className="pointer-events-none absolute rounded-full bg-primary/25"
+          style={{
+            width: dot.size, height: dot.size,
+            top: dot.top, left: (dot as any).left, right: (dot as any).right,
+          }}
+          animate={{ y: [0, -12, 0], opacity: [0.4, 0.9, 0.4] }}
+          transition={{ duration: dot.dur, repeat: Infinity, ease: "easeInOut", delay: dot.delay }}
+        />
+      ))}
+
+      <div className="container mx-auto max-w-6xl px-4 relative z-10">
+
+        {/* ── Section heading ── */}
         <motion.div
-          className="flex flex-col items-center mb-6"
-          variants={itemVariants}
+          className="flex flex-col items-center mb-6 text-center"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={stagger}
         >
           <motion.span
-            className="text-primary font-medium mb-2 flex items-center gap-2"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            variants={fadeUp}
+            custom={0}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold tracking-[0.18em] uppercase text-primary mb-3"
           >
-            DISCOVER OUR STORY
+            <span className="w-5 h-px bg-primary/60 rounded-full" />
+            Discover Our Story
+            <span className="w-5 h-px bg-primary/60 rounded-full" />
           </motion.span>
-          <h2 className="text-2xl md:text-3xl   mb-4 text-center">
-            About traft.
-          </h2>
+
+          <motion.h2
+            variants={fadeUp}
+            custom={0.1}
+            className="text-3xl md:text-4xl font-bold tracking-tight mb-4"
+          >
+            About{" "}
+            <span className="text-primary">traft.</span>
+          </motion.h2>
+
           <motion.div
-            className="w-24 h-1 bg-green-100"
-            initial={{ width: 0 }}
-            animate={{ width: 96 }}
-            transition={{ duration: 1, delay: 0.5 }}
-          ></motion.div>
+            variants={fadeUp}
+            custom={0.2}
+            className="overflow-hidden"
+          >
+            <motion.div
+              className="h-[3px] w-20 rounded-full bg-primary/30 mx-auto"
+              initial={{ scaleX: 0, originX: 0 }}
+              animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
+              transition={{ duration: 0.9, delay: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            />
+          </motion.div>
         </motion.div>
 
         <motion.p
-          className="text-center max-w-2xl mx-auto mb-16 text-muted-forground/80  "
-          variants={itemVariants}
+          className="text-center max-w-2xl mx-auto mb-16 text-muted-foreground leading-relaxed"
+          initial="hidden"
+          animate={isInView ? "visible" : "hidden"}
+          variants={fadeUp}
+          custom={0.3}
         >
-          We’re TRAFT, a Tirur-based watch store trusted for 3+ years, offering premium first-copy brands like Rolex, Omega & Casio at everyday prices with all-India COD.
+          We're TRAFT, a Tirur-based watch store trusted for 3+ years, offering
+          premium first-copy brands like Rolex, Omega & Casio at everyday prices
+          with all-India COD.
         </motion.p>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Left Column */}
-          <div className="space-y-16">
-            {services
-              .filter((service) => service.position === "left")
-              .map((service, index) => (
-                <ServiceItem
-                  key={`left-${index}`}
-                  title={service.title}
-                  description={service.description}
-                  variants={itemVariants}
-                  delay={index * 0.2}
-                  direction="left"
-                />
-              ))}
-          </div>
+        {/* ── 3-col layout ── */}
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-10 items-center">
 
-          {/* Center Image */}
-          <div className="flex justify-center items-center order-first md:order-none mb-8 md:mb-0">
-            <motion.div
-              className="relative w-full max-w-xs"
-              variants={itemVariants}
-            >
+          {/* Services list */}
+          <motion.div
+            className="space-y-8"
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
+            variants={stagger}
+          >
+            {services.map((s, i) => (
+              <ServiceCard key={i} {...s} delay={i * 0.1} />
+            ))}
+          </motion.div>
+
+          {/* Centre image */}
+          <motion.div
+            className="order-first md:order-none flex justify-center"
+            initial={{ opacity: 0, scale: 0.88 }}
+            animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.88 }}
+            transition={{ duration: 0.8, delay: 0.25, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="relative w-56 md:w-64 shrink-0">
+              {/* Glow ring */}
+              <div className="absolute inset-0 rounded-3xl bg-primary/10 blur-2xl scale-110 -z-10" />
+
               <motion.div
-                className=" rounded-3xl overflow-hidden shadow-3xl"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                whileHover={{ scale: 1.03, transition: { duration: 0.3 } }}
+                className="rounded-3xl overflow-hidden ring-1 ring-border shadow-2xl"
+                whileHover={{ scale: 1.025, transition: { duration: 0.3 } }}
               >
                 <img
                   src={ss.src}
-                  alt="Modern House"
+                  alt="TRAFT watch showcase"
                   className="w-full h-full object-cover"
                 />
-                <motion.div
-                  className="absolute inset-0 flex items-end justify-center p-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.8, delay: 0.9 }}
-                >
-                    <Link href={process.env.NEXT_PUBLIC_INSTA || ''}>
-                  <motion.button
-                    className="bg-white text-muted-forground px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Our Instagram <ArrowRight className="w-4 h-4" />
-                  </motion.button>
+
+                {/* Overlay CTA */}
+                <div className="absolute inset-0 flex items-end justify-center p-4 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300">
+                  <Link href={process.env.NEXT_PUBLIC_INSTA || "#"}>
+                    <motion.span
+                      className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-foreground text-xs font-semibold px-4 py-2 rounded-full shadow"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.96 }}
+                    >
+                      Our Instagram <ArrowRight className="w-3.5 h-3.5" />
+                    </motion.span>
                   </Link>
-                </motion.div>
+                </div>
               </motion.div>
-              <motion.div
-                className="absolute inset-0  rounded-md -m-3 z-[-1]"
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.8, delay: 0.6 }}
-              ></motion.div>
 
-              {/* Floating accent elements */}
-              {/* <motion.div
-                className="absolute -top-4 -right-8 w-16 h-16 rounded-full bg-primary/10"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 0.9 }}
-                style={{ y: y1 }}
-              ></motion.div>
+              {/* Always-visible Instagram pill below image */}
               <motion.div
-                className="absolute -bottom-6 -left-10 w-20 h-20 rounded-full bg-[#A9BBC8]/15"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1, delay: 1.1 }}
-                style={{ y: y2 }}
-              ></motion.div>
+                className="mt-4 flex justify-center"
+                initial={{ opacity: 0, y: 10 }}
+                animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+                transition={{ delay: 0.9, duration: 0.5 }}
+              >
+                <Link href={process.env.NEXT_PUBLIC_INSTA || "#"}>
+                  <span className="inline-flex items-center gap-1.5 bg-secondary hover:bg-secondary/80 text-foreground text-xs font-medium px-4 py-2 rounded-full transition-colors">
+                    Our Instagram <ArrowRight className="w-3 h-3" />
+                  </span>
+                </Link>
+              </motion.div>
+            </div>
+          </motion.div>
 
-            
-              <motion.div
-                className="absolute -top-10 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-primary"
-                animate={{
-                  y: [0, -10, 0],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "easeInOut",
-                }}
-              ></motion.div>
-              <motion.div
-                className="absolute -bottom-12 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#A9BBC8]"
-                animate={{
-                  y: [0, 10, 0],
-                  opacity: [0.5, 1, 0.5],
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "easeInOut",
-                  delay: 0.5,
-                }}
-              ></motion.div> */}
-            </motion.div>
-          </div>
-
-          {/* Right Column */}
-          <div className="space-y-16">
-            {services
-              .filter((service) => service.position === "right")
-              .map((service, index) => (
-                <ServiceItem
-                  key={`right-${index}`}
-                  title={service.title}
-                  description={service.description}
-                  variants={itemVariants}
-                  delay={index * 0.2}
-                  direction="right"
-                />
-              ))}
-          </div>
+          {/* Right column placeholder — keeps symmetry when right services are commented out */}
+          <div className="hidden md:block" />
         </div>
 
-        {/* Stats Section */}
+        {/* ── Stats ── */}
         <motion.div
           ref={statsRef}
-          className="mt-24 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"
+          className="mt-24 grid grid-cols-1 sm:grid-cols-3 gap-6"
           initial="hidden"
-          animate={isStatsInView ? "visible" : "hidden"}
-          variants={containerVariants}
+          animate={isStatsView ? "visible" : "hidden"}
+          variants={stagger}
         >
-          {stats.map((stat, index) => (
-            <StatCounter
-              key={index}
-              icon={stat.icon}
-              value={stat.value}
-              label={stat.label}
-              suffix={stat.suffix}
-              delay={index * 0.1}
-            />
+          {stats.map((s, i) => (
+            <StatCard key={i} {...s} delay={i * 0.1} isInView={isStatsView} />
           ))}
         </motion.div>
 
-        {/* CTA Section */}
+        {/* ── CTA banner ── */}
         <motion.div
-          className="mt-20 bg-secondary p-8 rounded-xl flex flex-col md:flex-row items-center justify-between gap-6"
-          initial={{ opacity: 0, y: 30 }}
-          animate={isStatsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mt-16 rounded-2xl bg-secondary/60 border border-border/50 backdrop-blur-sm p-8 flex flex-col sm:flex-row items-center justify-between gap-6"
+          initial={{ opacity: 0, y: 32 }}
+          animate={isStatsView ? { opacity: 1, y: 0 } : { opacity: 0, y: 32 }}
+          transition={{ duration: 0.7, delay: 0.45, ease: [0.4, 0, 0.2, 1] }}
         >
-          <div className="flex-1">
-            <h3 className="text-2xl font-medium mb-2">Want to talk to us?</h3>
-            <p className="text-muted-foreground">Let's chat on Whatsapp.</p>
+          <div>
+            <h3 className="text-xl font-semibold mb-1">Want to talk to us?</h3>
+            <p className="text-sm text-muted-foreground">Let's chat on WhatsApp — we reply fast.</p>
           </div>
-          <Link href={`https://wa.me/${process.env.NEXT_PUBLIC_PHONE}?text=Hi+${process.env.NEXT_PUBLIC_APP_NAME}`}>
-            <motion.button
-              className="bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+          <Link
+            href={`https://wa.me/${process.env.NEXT_PUBLIC_PHONE}?text=Hi+${process.env.NEXT_PUBLIC_APP_NAME}`}
+          >
+            <motion.span
+              className="inline-flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl text-sm font-semibold transition-colors cursor-pointer"
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
             >
               Send Message <ArrowRight className="w-4 h-4" />
-            </motion.button>
+            </motion.span>
           </Link>
         </motion.div>
-      </motion.div>
+
+      </div>
     </section>
   );
 }
 
-interface ServiceItemProps {
-  icon: React.ReactNode;
-  secondaryIcon?: React.ReactNode;
-  title: string;
-  description: string;
-  variants: {
-    hidden: { opacity: number; y?: number };
-    visible: {
-      opacity: number;
-      y?: number;
-      transition: { duration: number; ease: string };
-    };
-  };
-  delay: number;
-  direction: "left" | "right";
-}
-
-function ServiceItem({
-  icon,
-  secondaryIcon,
+/* ─────────────────────────────────────────
+   ServiceCard
+───────────────────────────────────────── */
+function ServiceCard({
+  icon: Icon,
   title,
   description,
-  variants,
   delay,
-  direction,
-}: any) {
+}: {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  delay: number;
+}) {
   return (
     <motion.div
-      className="flex flex-col group"
-      variants={variants}
-      transition={{ delay }}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      className="group flex items-start gap-4"
+      variants={fadeUp}
+      custom={delay}
+      whileHover={{ x: 4, transition: { duration: 0.2 } }}
     >
       <motion.div
-        className="flex items-center gap-3 mb-3"
-        initial={{ x: direction === "left" ? -20 : 20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: delay + 0.2 }}
+        className="shrink-0 flex items-center justify-center w-11 h-11 rounded-xl bg-primary/10 text-primary transition-colors duration-300 group-hover:bg-primary/20"
+        whileHover={{ rotate: [0, -8, 8, -4, 0], transition: { duration: 0.45 } }}
       >
-        <motion.div
-          className="text-primary bg-primary/10 p-3 rounded-lg transition-colors duration-300 group-hover:bg-primary/20 relative"
-          whileHover={{
-            rotate: [0, -10, 10, -5, 0],
-            transition: { duration: 0.5 },
-          }}
-        >
-          {icon}
-          {secondaryIcon}
-        </motion.div>
-        <h3 className="text-xl font-medium text-muted-forground group-hover:text-primary transition-colors duration-300">
+        <Icon size={18} strokeWidth={1.8} />
+      </motion.div>
+      <div className="min-w-0">
+        <h3 className="text-sm font-semibold mb-1 group-hover:text-primary transition-colors duration-200">
           {title}
         </h3>
-      </motion.div>
-      <motion.p
-        className="text-sm text-muted-forground/80 leading-relaxed pl-12"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6, delay: delay + 0.4 }}
-      >
-        {description}
-      </motion.p>
-      <motion.div
-        className="mt-3 pl-12 flex items-center text-primary text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 0 }}
-      >
-        <span className="flex items-center gap-1">
-          Learn more <ArrowRight className="w-3 h-3" />
-        </span>
-      </motion.div>
+        <p className="text-xs text-muted-foreground leading-relaxed">{description}</p>
+      </div>
     </motion.div>
   );
 }
 
-interface StatCounterProps {
-  icon: React.ReactNode;
+/* ─────────────────────────────────────────
+   StatCard
+───────────────────────────────────────── */
+function StatCard({
+  icon: Icon,
+  value,
+  label,
+  suffix,
+  delay,
+  isInView,
+}: {
+  icon: React.ElementType;
   value: number;
   label: string;
   suffix: string;
   delay: number;
-}
+  isInView: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
 
-function StatCounter({ icon, value, label, suffix, delay }: StatCounterProps) {
-  const countRef = useRef(null);
-  const isInView = useInView(countRef, { once: false });
-  const [hasAnimated, setHasAnimated] = useState(false);
-
-  const springValue = useSpring(0, {
-    stiffness: 50,
-    damping: 10,
-  });
+  const spring = useSpring(0, { stiffness: 45, damping: 12 });
 
   useEffect(() => {
-    if (isInView && !hasAnimated) {
-      springValue.set(value);
-      setHasAnimated(true);
-    } else if (!isInView && hasAnimated) {
-      springValue.set(0);
-      setHasAnimated(false);
-    }
-  }, [isInView, value, springValue, hasAnimated]);
+    spring.set(isInView ? value : 0);
+  }, [isInView, value, spring]);
 
-  const displayValue = useTransform(springValue, (latest) =>
-    Math.floor(latest)
-  );
+  // Integer display derived from spring
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    const unsub = spring.on("change", (v) => setDisplay(Math.floor(v)));
+    return unsub;
+  }, [spring]);
 
   return (
     <motion.div
-      className="bg-white/50 backdrop-blur-sm p-6 rounded-xl flex flex-col items-center text-center group hover:bg-white transition-colors duration-300"
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.6, delay },
-        },
-      }}
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      ref={ref}
+      className="group relative flex flex-col items-center text-center p-6 rounded-2xl bg-background border border-border/60 hover:border-primary/30 shadow-sm hover:shadow-md transition-all duration-300"
+      variants={fadeUp}
+      custom={delay}
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
     >
       <motion.div
-        className="w-14 h-14 rounded-full bg-secondary/5 flex items-center justify-center mb-4 text-primary group-hover:bg-primary/10 transition-colors duration-300"
-        whileHover={{ rotate: 360, transition: { duration: 0.8 } }}
+        className="w-12 h-12 rounded-full bg-primary/8 flex items-center justify-center mb-4 text-primary group-hover:bg-primary/15 transition-colors duration-300"
+        whileHover={{ rotate: 360, transition: { duration: 0.7 } }}
       >
-        {icon}
+        <Icon size={20} strokeWidth={1.8} />
       </motion.div>
+
+      <div className="text-3xl font-bold tabular-nums">
+        {display.toLocaleString()}
+        <span className="text-primary">{suffix}</span>
+      </div>
+      <p className="text-xs text-muted-foreground mt-1 font-medium">{label}</p>
+
       <motion.div
-        ref={countRef}
-        className="text-3xl font-bold text-muted-forground flex items-center"
-      >
-        <motion.span>{displayValue}</motion.span>
-        <span>{suffix}</span>
-      </motion.div>
-      <p className="text-muted-forground/70 text-sm mt-1">{label}</p>
-      <motion.div className="w-10 h-0.5 bg-primary mt-3 group-hover:w-16 transition-all duration-300" />
+        className="mt-3 h-[2px] rounded-full bg-primary/30"
+        initial={{ width: 0 }}
+        animate={isInView ? { width: 40 } : { width: 0 }}
+        transition={{ duration: 0.7, delay: delay + 0.4 }}
+      />
     </motion.div>
   );
 }
